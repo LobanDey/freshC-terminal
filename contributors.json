@@ -1,0 +1,7 @@
+[
+    { "name": "Aprameya Mandal", "role": "Chief", "handle": "Chief@jatjaliyat.on", "status": "ACTIVE" },
+    { "name": "Ritam Pramanik", "role": "Initiator", "handle": "Initiator@jatjaliyat.on", "status": "ACTIVE" },
+    { "name": "Loban Dey", "role": "Co-Chief", "handle": "Co-Chief@jatjaliyat.on", "status": "ACTIVE" },
+    { "name": "Aditya Raj Ghosh", "role": "Designer#1", "handle": "Designer#1@jatjaliyat.on", "status": "STANDBY" },
+    { "name": "Arkoprotim Das", "role": "Designer#2", "handle": "Designer#2@jatjaliyat.on", "status": "STANDBY" }
+]

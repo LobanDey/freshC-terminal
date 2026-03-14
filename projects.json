@@ -1,0 +1,22 @@
+[
+    {
+        "title": "Smart Motor",
+        "icon": "⚙️",
+        "description": "An automated motor control system that can be operated using programmed inputs or sensors. It improves efficiency by enabling precise control over speed, direction, and timing."
+    },
+    {
+        "title": "Secure UI",
+        "icon": "🔐",
+        "description": "A user interface designed with authentication and protection mechanisms to prevent unauthorized access. It ensures that only verified users can control or monitor system functions."
+    },
+    {
+        "title": "Sensor Grid",
+        "icon": "📡",
+        "description": "A network of interconnected sensors that continuously collect and share environmental or system data. This allows real-time monitoring and smarter automated responses."
+    },
+    {
+        "title": "Audio Link",
+        "icon": "🎧",
+        "description": "A communication system that transmits live audio signals between devices. It enables clear two-way or one-way audio exchange over wired or wireless connections."
+    }
+]

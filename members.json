@@ -1,0 +1,12 @@
+[
+  { "name": "Aprameya Mandal", "id": "M-101", "password": "pass1", "role": "Chief", "char": "AM" },
+  { "name": "Ritam Pramanik", "id": "M-102", "password": "pass2", "role": "Initiator", "char": "RP" },
+  { "name": "Loban Dey", "id": "M-103", "password": "pass3", "role": "Co-Chief", "char": "LD" },
+  { "name": "Aditya Raj Ghosh", "id": "M-104", "password": "pass4", "role": "Designer#1", "char": "ARG" },
+  { "name": "Arkoprotim Das", "id": "M-105", "password": "pass5", "role": "Designer#2", "char": "AD" },
+  { "name": "Chandratidya Sarkar", "id": "M-106", "password": "pass6", "role": "Member@0", "char": "CS" },
+  { "name": "Rohit Banik", "id": "M-107", "password": "pass7", "role": "Member@1", "char": "RB" },
+  { "name": "Rounak Pratihar", "id": "M-108", "password": "pass8", "role": "Member@2", "char": "RP" },
+  { "name": "Marjit Haobijam", "id": "M-109", "password": "pass9", "role": "Member@3", "char": "MH" },
+  { "name": "Drishtanta Biswas", "id": "M-110", "password": "pass10", "role": "Member@4", "char": "DB" }
+]
