@@ -1,0 +1,2 @@
+# freshC-terminal
+us only
