@@ -158,10 +158,20 @@
         function updateProfile(idx) {
             document.querySelectorAll('.member-tile').forEach((t, i) => t.classList.toggle('active', i === idx));
             const m = members[idx];
-            const tag = (m.id === sessionID) ? `<span style="color:var(--highlight)">[ ACTIVE ]</span>` : `<span style="color:var(--text-dim)">[ VERIFIED ]</span>`;
-            document.getElementById('profile-panel').innerHTML = `<div class="profile-img">${m.char}</div><div class="profile-info"><span style="color:var(--text-dim); border-left:3px solid var(--highlight); padding-left:15px;">${m.role} // NODE</span><h2 style="margin:10px 0;">${m.name} ${tag}</h2><p style="font-family:var(--font-mono); color:var(--text-dim);">ID: ${m.id} authenticated.</p></div>`;
+            // Wrapped in a div for new line and added font-size styling
+            const tag = (m.id === sessionID) ? 
+                `<div style="color:var(--highlight); font-size:0.8rem; margin-top:5px;">[ ACTIVE ]</div>` : 
+                `<div style="color:var(--text-dim); font-size:0.8rem; margin-top:5px;">[ VERIFIED ]</div>`;
+            
+            document.getElementById('profile-panel').innerHTML = `
+                <div class="profile-img">${m.char}</div>
+                <div class="profile-info">
+                    <span style="color:var(--text-dim); border-left:3px solid var(--highlight); padding-left:15px;">${m.role} // NODE</span>
+                    <h2 style="margin:10px 0;">${m.name}</h2>
+                    ${tag}
+                    <p style="font-family:var(--font-mono); color:var(--text-dim); margin-top:10px;">ID: ${m.id} authenticated.</p>
+                </div>`;
         }
-
         function lockTerminal() {
             const b = document.createElement('div'); b.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:10000; display:flex; align-items:center; justify-content:center; color:#00ff88; font-family:var(--font-mono); cursor:pointer;";
             b.innerHTML = "<h1>[ TERMINAL_LOCKED ]</h1>"; b.onclick = () => window.location.href = "index.html";
