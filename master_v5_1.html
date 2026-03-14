@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Terminal | V5.1</title>
+    <style>
+        :root {
+            --terminal-green: #00ff41;
+            --terminal-red: #ff3131;
+            --terminal-gold: #ffcc00;
+            --bg-black: #050505;
+            --card-bg: #0a0a0a;
+            --border-dim: #333; 
+            --glow-green: 0 0 15px rgba(0, 255, 65, 0.3);
+            --glow-red: 0 0 20px rgba(255, 49, 49, 0.5);
+            --glow-gold: 0 0 20px rgba(255, 204, 0, 0.5);
+            --grid-color: #1a1a1a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Courier New', Courier, monospace; }
+        body { background-color: var(--bg-black); color: var(--terminal-green); overflow: hidden; height: 100vh; font-weight: bold; }
+
+        /* --- BOOT SCREEN --- */
+        #boot-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .loader { width: 300px; height: 2px; background: #111; margin-top: 20px; position: relative; overflow: hidden; }
+        .loader::after { content: ''; position: absolute; width: 40%; height: 100%; background: var(--terminal-green); animation: load 1.2s infinite ease-in-out; }
+        @keyframes load { 0% { left: -40%; } 100% { left: 100%; } }
+
+        /* --- DASHBOARD --- */
+        #dashboard { display: none; height: 100vh; flex-direction: column; }
+        header { display: flex; width: 100%; border-bottom: 2px solid var(--terminal-green); background: #000; }
+        .nav-tab { flex: 1; padding: 25px 0; cursor: pointer; border-right: 1px solid var(--border-dim); text-align: center; letter-spacing: 4px; color: #00661a; }
+        .nav-tab.active { background: rgba(0, 255, 65, 0.1); color: var(--terminal-green); border-bottom: 4px solid var(--terminal-green); }
+
+        .section { display: none; flex: 1; padding: 40px; overflow-y: auto; width: 100%; }
+        .section.active { display: block; }
+
+        /* NAVIGATION: BACK BUTTON */
+        .btn-back-fixed { 
+            position: fixed; 
+            bottom: 30px; 
+            left: 30px; 
+            background: rgba(0,0,0,0.8); 
+            border: 1px solid var(--terminal-green); 
+            color: var(--terminal-green); 
+            padding: 12px 20px; 
+            font-size: 0.8rem; 
+            cursor: pointer; 
+            z-index: 500; 
+            transition: 0.3s;
+            letter-spacing: 2px;
+            box-shadow: var(--glow-green);
+        }
+        .btn-back-fixed:hover {
+            background: var(--terminal-green);
+            color: #000;
+            box-shadow: 0 0 25px var(--terminal-green);
+        }
+
+        /* ADMIN MODES */
+        .admin-toolbar { display: flex; justify-content: flex-end; gap: 15px; max-width: 1200px; margin: 0 auto 30px auto; }
+        .admin-btn { background: #111; border: 2px solid #444; color: #888; width: 55px; height: 55px; cursor: pointer; font-size: 1.5rem; transition: 0.2s; }
+        .mode-star .admin-btn#btn-star { border-color: var(--terminal-gold); color: var(--terminal-gold); box-shadow: var(--glow-gold); }
+        .mode-delete .admin-btn#btn-del { border-color: var(--terminal-red); color: var(--terminal-red); box-shadow: var(--glow-red); }
+
+        .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; align-content: start; }
+        .card { background: var(--card-bg); border: 2px solid var(--border-dim); height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+        .card:hover { border-color: var(--terminal-green); box-shadow: var(--glow-green); }
+        .card.starred { border-color: var(--terminal-gold) !important; box-shadow: var(--glow-gold); }
+        .mode-delete .card:hover { border-color: var(--terminal-red) !important; box-shadow: var(--glow-red); }
+
+        /* MANIFEST & WYSIWYG */
+        .log-layout { display: flex; gap: 40px; height: calc(100vh - 200px); width: 100%; max-width: 1400px; margin: 0 auto; }
+        #log-list { flex: 0 0 350px; overflow-y: auto; border: 2px solid #222; padding: 10px; }
+        .log-item-btn { width: 100%; background: #111; border: 1px solid #333; color: #00661a; padding: 15px; text-align: left; cursor: pointer; margin-bottom: 10px; }
+        .log-item-btn.active { border-color: var(--terminal-green); color: var(--terminal-green); background: rgba(0,255,65,0.05); }
+
+        .log-right { flex: 1; display: flex; flex-direction: column; }
+        .summary-box { background: #080808; border: 1px solid #222; padding: 15px; margin-bottom: 15px; font-size: 0.7rem; color: #444; text-transform: uppercase; position: relative; }
+        .unlocked .summary-box { border-color: var(--terminal-gold); color: var(--terminal-gold); }
+        
+        .purge-btn { position: absolute; right: 15px; top: 15px; background: transparent; border: 1px solid var(--terminal-red); color: var(--terminal-red); padding: 5px 10px; cursor: pointer; font-size: 0.6rem; transition: 0.2s; visibility: hidden; }
+        .unlocked .purge-btn { visibility: visible; }
+        .purge-btn:hover { background: var(--terminal-red); color: #000; box-shadow: var(--glow-red); }
+
+        .editor-container { flex: 1; border: 2px solid #222; background: #000; display: flex; flex-direction: column; }
+        .unlocked .editor-container { border-color: var(--terminal-green); }
+        .editor-toolbar { background: #111; border-bottom: 1px solid #222; padding: 10px; display: flex; gap: 10px; opacity: 0.2; pointer-events: none; }
+        .unlocked .editor-toolbar { opacity: 1; pointer-events: auto; }
+        
+        .btn-state { width: 45px !important; margin: 0 !important; font-size: 0.8rem !important; padding: 5px !important; }
+        .btn-state.active { background: var(--terminal-green); color: #000; box-shadow: var(--glow-green); }
+
+        .editor-body { flex: 1; background: transparent; border: none; color: var(--terminal-green); padding: 25px; font-size: 1.1rem; outline: none; overflow-y: auto; opacity: 0.1; }
+        .unlocked .editor-body { opacity: 1; }
+        .editor-body b { color: #fff; text-shadow: 0 0 5px var(--terminal-green); }
+        .editor-body u { text-decoration-color: var(--terminal-green); }
+
+        /* BUILDER */
+        #builder-view { display: none; height: 100vh; flex-direction: column; }
+        #canvas-container { flex: 1; position: relative; background-image: linear-gradient(to right, var(--grid-color) 1px, transparent 1px), linear-gradient(to bottom, var(--grid-color) 1px, transparent 1px); background-size: 25px 25px; overflow: hidden; }
+        .component { position: absolute; width: 140px; background: #000; border: 2px solid var(--terminal-green); display: flex; align-items: center; justify-content: center; font-size: 0.75rem; cursor: grab; z-index: 10; box-shadow: var(--glow-green); }
+        .pin { width: 12px; height: 12px; background: var(--terminal-green); position: absolute; border-radius: 2px; cursor: pointer; border: 1px solid #000; transform: translateY(-50%); }
+        .btn-ctrl { background: #111; border: 2px solid #444; color: #bbb; padding: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; width: 100%; margin-bottom: 10px; }
+        .btn-ctrl:hover { border-color: var(--terminal-green); color: #fff; }
+
+        #terminal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: none; align-items: center; justify-content: center; }
+        .terminal-box { width: 500px; border: 2px solid var(--terminal-green); background: #000; padding: 40px; box-shadow: var(--glow-green); }
+        .terminal-input { width: 100%; background: #000; border: none; border-bottom: 2px solid var(--terminal-green); color: var(--terminal-green); font-size: 1.5rem; outline: none; margin-top: 20px; }
+    </style>
+</head>
+<body class="mode-normal">
+
+    <div id="boot-screen">
+        <div style="letter-spacing:5px">DATA_VISUALIZER_V5.1</div>
+        <div class="loader"></div>
+    </div>
+
+    <button class="btn-back-fixed" onclick="window.history.back()">[ BACK_TO_PORTAL ]</button>
+
+    <div id="dashboard">
+        <header>
+            <div class="nav-tab active" onclick="showSection('node-map', this)">NODE_MAP</div>
+            <div class="nav-tab" onclick="showSection('manifest', this)">SYSTEM_LOG</div>
+        </header>
+
+        <div id="node-map" class="section active">
+            <div class="admin-toolbar">
+                <button class="admin-btn" id="btn-star" onclick="toggleMode('star')">★</button>
+                <button class="admin-btn" id="btn-del" onclick="toggleMode('delete')">⚙</button>
+            </div>
+            <div id="project-grid" class="grid-container"></div>
+        </div>
+
+        <div id="manifest" class="section">
+            <div class="log-layout">
+                <div id="log-list"></div>
+                <div class="log-right" id="editor-ui">
+                    <div class="summary-box" id="circuit-summary">
+                        [METADATA]: NO_SELECTION
+                        <button class="purge-btn" onclick="purgeNode()">DATA_PURGE</button>
+                    </div>
+                    <div class="editor-container">
+                        <div class="editor-toolbar">
+                            <button id="bullet-toggle" onclick="execCmd('insertUnorderedList')" class="btn-ctrl btn-state">LIST</button>
+                            <button id="bold-toggle" onclick="execCmd('bold')" class="btn-ctrl btn-state">B</button>
+                            <button id="under-toggle" onclick="execCmd('underline')" class="btn-ctrl btn-state">U</button>
+                        </div>
+                        <div id="note-area" class="editor-body" contenteditable="false" oninput="saveNote()"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="builder-view">
+        <header style="height:60px; border-bottom:2px solid #333; display:flex; align-items:center; padding:0 20px; justify-content:space-between; background:#000;">
+            <div id="active-project-title" style="color:var(--terminal-green)">NODE_NULL</div>
+            <div style="display:flex; gap:10px;">
+                <button class="btn-ctrl" style="width:80px;" onclick="undo()">UNDO</button>
+                <button class="btn-ctrl" style="width:80px;" onclick="redo()">REDO</button>
+                <button class="btn-ctrl" style="width:80px; color:var(--terminal-green);" onclick="saveToDisk()">SAVE</button>
+                <button class="btn-ctrl" style="width:80px; color:var(--terminal-red);" onclick="exitToHub()">EXIT</button>
+            </div>
+        </header>
+        <main style="display:flex; flex:1; height:calc(100vh - 60px);">
+            <aside style="width:240px; border-right:2px solid #333; padding:20px; background:#0a0a0a;">
+                <button class="btn-ctrl" onclick="addComponent('RESISTOR', 2)">+ RESISTOR</button>
+                <button class="btn-ctrl" onclick="addComponent('IC_8_PIN', 8)">+ IC_8_PIN</button>
+                <button class="btn-ctrl" onclick="triggerCustom()" style="border-color:var(--terminal-gold); color:var(--terminal-gold);">+ CUSTOM_NODE</button>
+            </aside>
+            <div id="canvas-container">
+                <svg id="wire-layer" style="position:absolute; width:100%; height:100%; pointer-events:none;">
+                    <path id="ghost-wire" d="" stroke="rgba(0,255,65,0.4)" stroke-width="3" fill="none" stroke-dasharray="5,5" />
+                </svg>
+            </div>
+        </main>
+    </div>
+
+    <div id="terminal-overlay"><div class="terminal-box"><h2 id="modal-title">INPUT</h2><input type="text" id="modal-field" class="terminal-input" autocomplete="off"></div></div>
+
+    <script>
+        const grid = document.getElementById('project-grid'), logList = document.getElementById('log-list');
+        const overlay = document.getElementById('terminal-overlay'), field = document.getElementById('modal-field');
+        const noteArea = document.getElementById('note-area'), canvas = document.getElementById('canvas-container');
+        let currentID = "", currentMode = "normal", activeLogID = null;
+        let isDrawing = false, startX, startY, draggedElement = null, undoStack = [], redoStack = [], promptMode = "NODE_NAME", customName = "";
+
+        function boot() { setTimeout(() => { document.getElementById('boot-screen').style.display = 'none'; document.getElementById('dashboard').style.display = 'flex'; checkStorageStatus(); }, 1200); }
+
+        function execCmd(cmd) { if(!activeLogID) return; document.execCommand(cmd, false, null); updateBtnStates(); noteArea.focus(); }
+        function updateBtnStates() { document.getElementById('bold-toggle').classList.toggle('active', document.queryCommandState('bold')); document.getElementById('under-toggle').classList.toggle('active', document.queryCommandState('underline')); document.getElementById('bullet-toggle').classList.toggle('active', document.queryCommandState('insertUnorderedList')); }
+        function saveNote() { if(activeLogID) localStorage.setItem(`NOTE_${activeLogID}`, noteArea.innerHTML); }
+        function purgeNode() { if(!activeLogID || !confirm("PURGE ALL DATA FOR THIS NODE?")) return; noteArea.innerHTML = ""; saveNote(); checkStorageStatus(); }
+
+        function checkStorageStatus() {
+            grid.innerHTML = ""; let projects = [];
+            for (let i = 0; i < localStorage.length; i++) { if (localStorage.key(i).startsWith("LABEL_NODE_")) { const id = localStorage.key(i).replace("LABEL_", ""); projects.push({ id, label: localStorage.getItem(localStorage.key(i)), isStarred: localStorage.getItem(`STAR_${id}`) === "true" }); } }
+            projects.forEach(p => {
+                const card = document.createElement('div'); card.className = `card ${p.isStarred ? 'starred' : ''}`;
+                card.innerHTML = `<h3>${p.label}</h3><span style="font-size:0.6rem; color:#444">${p.id}</span>`;
+                card.onclick = () => handleCardClick(p.id); grid.appendChild(card);
+            });
+            if(currentMode === "normal") {
+                const add = document.createElement('div'); add.className = 'card'; add.innerHTML = `<div style="font-size:3rem">+</div>`;
+                add.onclick = () => { promptMode = "NODE_NAME"; currentID = `NODE_${Date.now()}`; showTerminal("PROJECT_CODE:"); }; grid.appendChild(add);
+            }
+            updateManifest(projects);
+        }
+
+        function loadNote(id, label) {
+            activeLogID = id; document.getElementById('editor-ui').classList.add('unlocked');
+            noteArea.contentEditable = "true"; 
+            noteArea.innerHTML = localStorage.getItem(`NOTE_${id}`) || "READY_FOR_INPUT...";
+            const saved = localStorage.getItem(id) ? JSON.parse(localStorage.getItem(id)) : {components:[]};
+            document.getElementById('circuit-summary').innerHTML = `[METADATA]: ${id}<br>[NAME]: ${label}<br>[UNITS]: ${saved.components.length} <button class="purge-btn" onclick="purgeNode()">DATA_PURGE</button>`;
+            document.querySelectorAll('.log-item-btn').forEach(b => b.classList.remove('active')); event.currentTarget.classList.add('active');
+        }
+
+        function triggerCustom() { promptMode = "COMP_NAME"; showTerminal("NODE_IDENTITY:"); }
+        function showTerminal(t) { document.getElementById('modal-title').innerText = t; field.value = ""; overlay.style.display = 'flex'; field.focus(); }
+        field.onkeypress = (e) => {
+            if (e.key === 'Enter' && field.value) {
+                const val = field.value.toUpperCase();
+                if (promptMode === "NODE_NAME") { localStorage.setItem(`LABEL_${currentID}`, val); overlay.style.display = 'none'; checkStorageStatus(); launchBuilder(currentID); }
+                else if (promptMode === "COMP_NAME") { customName = val; promptMode = "COMP_PINS"; showTerminal("PIN_COUNT:"); }
+                else if (promptMode === "COMP_PINS") { const pCount = parseInt(val); if(!isNaN(pCount)) { addComponent(customName, pCount); overlay.style.display = 'none'; } }
+            }
+        };
+
+        function addComponent(name, pins, x='100px', y='100px', pushHistory=true) {
+            const div = document.createElement('div'); div.className = 'component'; div.dataset.pins = pins; div.style.left = x; div.style.top = y;
+            const h = Math.max(60, (pins/2)*40); div.style.height = `${h}px`; div.innerHTML = `<span>${name}</span>`;
+            for(let i=0; i<pins; i++) {
+                const p = document.createElement('div'); p.className = 'pin';
+                const isLeft = i < pins/2; p.style[isLeft ? 'left' : 'right'] = '-7px';
+                const spacing = h / (pins/2 + 1); p.style.top = `${((i % (pins/2)) + 1) * spacing}px`;
+                p.onmousedown = (e) => { e.stopPropagation(); isDrawing = true; const r = p.getBoundingClientRect(), cr = canvas.getBoundingClientRect(); startX = Math.round((r.left + 6 - cr.left)/25)*25; startY = Math.round((r.top + 6 - cr.top)/25)*25; };
+                div.appendChild(p);
+            }
+            div.onmousedown = (e) => { if(!e.target.classList.contains('pin')) draggedElement = div; };
+            canvas.appendChild(div); if(pushHistory) saveHistory();
+        }
+
+        canvas.onmousedown = (e) => { if(e.target === canvas) { const cr = canvas.getBoundingClientRect(); isDrawing = true; startX = Math.round((e.clientX - cr.left)/25)*25; startY = Math.round((e.clientY - cr.top)/25)*25; } };
+        document.onmousemove = (e) => {
+            const cr = canvas.getBoundingClientRect(); const x = Math.round((e.clientX - cr.left)/25)*25, y = Math.round((e.clientY - cr.top)/25)*25;
+            if(draggedElement) { draggedElement.style.left = `${x-70}px`; draggedElement.style.top = `${y-30}px`; }
+            if(isDrawing) document.getElementById('ghost-wire').setAttribute('d', `M ${startX} ${startY} L ${x} ${startY} L ${x} ${y}`);
+        };
+        document.onmouseup = () => {
+            if(isDrawing) {
+                const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                p.setAttribute('d', document.getElementById('ghost-wire').getAttribute('d')); p.setAttribute('stroke', '#00ff41'); p.setAttribute('stroke-width', '3'); p.setAttribute('fill', 'none'); p.classList.add('active-wire');
+                document.getElementById('wire-layer').appendChild(p); isDrawing = false; document.getElementById('ghost-wire').setAttribute('d', ''); saveHistory();
+            }
+            draggedElement = null;
+        };
+
+        function saveHistory() { undoStack.push(JSON.stringify(getCurrentState())); redoStack = []; }
+        function undo() { if (undoStack.length > 1) { redoStack.push(undoStack.pop()); clearCanvas(); renderState(JSON.parse(undoStack[undoStack.length-1])); } }
+        function redo() { if (redoStack.length > 0) { const s = redoStack.pop(); undoStack.push(s); clearCanvas(); renderState(JSON.parse(s)); } }
+        function updateManifest(projects) { logList.innerHTML = ""; projects.forEach(p => { const btn = document.createElement('button'); btn.className = 'log-item-btn'; btn.innerHTML = `<div style="font-size:0.6rem; color:#444">${p.id}</div>${p.label}`; btn.onclick = (e) => loadNote(p.id, p.label); logList.appendChild(btn); }); }
+        function handleCardClick(id) { if (currentMode === "normal") launchBuilder(id); else if (currentMode === "star") { localStorage.setItem(`STAR_${id}`, localStorage.getItem(`STAR_${id}`) !== "true"); checkStorageStatus(); } else if (currentMode === "delete") { localStorage.removeItem(`LABEL_${id}`); localStorage.removeItem(id); checkStorageStatus(); } }
+        function toggleMode(m) { currentMode = (currentMode === m) ? "normal" : m; document.body.className = `mode-${currentMode}`; checkStorageStatus(); }
+        function launchBuilder(id) { currentID = id; document.getElementById('dashboard').style.display = 'none'; document.getElementById('builder-view').style.display = 'flex'; document.getElementById('active-project-title').innerText = localStorage.getItem(`LABEL_${id}`); clearCanvas(); const saved = localStorage.getItem(id); if (saved) renderState(JSON.parse(saved)); saveHistory(); }
+        function exitToHub() { document.getElementById('builder-view').style.display = 'none'; document.getElementById('dashboard').style.display = 'flex'; checkStorageStatus(); }
+        function saveToDisk() { localStorage.setItem(currentID, JSON.stringify(getCurrentState())); alert("SYNC_SUCCESS"); }
+        function getCurrentState() { return { components: Array.from(document.querySelectorAll('.component')).map(c => ({ name: c.querySelector('span').innerText, pins: parseInt(c.dataset.pins), left: c.style.left, top: c.style.top })), wires: Array.from(document.querySelectorAll('.active-wire')).map(w => w.getAttribute('d')) }; }
+        function renderState(s) { s.components.forEach(c => addComponent(c.name, c.pins, c.left, c.top, false)); s.wires.forEach(d => { const p = document.createElementNS("http://www.w3.org/2000/svg", "path"); p.setAttribute('d', d); p.setAttribute('stroke', '#00ff41'); p.setAttribute('stroke-width', '3'); p.setAttribute('fill', 'none'); p.classList.add('active-wire'); document.getElementById('wire-layer').appendChild(p); }); }
+        function clearCanvas() { document.querySelectorAll('.component, .active-wire').forEach(el => el.remove()); }
+        function showSection(id, el) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); }
+
+        window.onload = boot;
+    </script>
+</body>
+</html>
