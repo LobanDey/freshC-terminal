@@ -35,7 +35,7 @@
         .profile-img { width: 220px; height: 220px; border: 1px solid var(--highlight); display: flex; align-items: center; justify-content: center; font-size: 7rem; color: var(--highlight); background: #000; }
         .profile-info h2 { font-family: var(--font-mono); font-size: 3.5rem; color: var(--highlight); text-transform: uppercase; }
 
-        /* HORIZONTAL PROJECTS */
+        /* PROJECTS */
         .projects-section { 
             width: 100vw; height: 100vh; display: flex; overflow-x: auto; 
             scroll-snap-type: x mandatory; background: #050505; border-top: 2px solid var(--highlight);
@@ -91,18 +91,34 @@
         let members = [], projects = [], contributors = [];
         const sessionID = localStorage.getItem('currentSessionID');
 
-        // CORE REDIRECT FUNCTION
+        // --- NAVIGATION PROTOCOLS ---
+
         function initiateElectronicKernel() {
             showToast('DECRYPTING_ELECTRONIC_V5.1...');
             setTimeout(() => {
-                // Ensure the filename below matches your V5.1 file exactly
                 window.location.href = "master_v5_1.html"; 
             }, 1200);
         }
 
+        function initiateWebsiteArchitect() {
+            showToast('INITIALIZING_WEBSITE_ARCHITECT_V10...');
+            setTimeout(() => {
+                window.location.href = "new.html"; 
+            }, 1200);
+        }
+
+        function lockTerminal() {
+            const b = document.createElement('div'); 
+            b.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:10000; display:flex; align-items:center; justify-content:center; color:#00ff88; font-family:var(--font-mono); cursor:pointer;";
+            b.innerHTML = "<h1>[ TERMINAL_LOCKED ]</h1>"; 
+            b.onclick = () => { window.location.href = "index.html"; };
+            document.body.appendChild(b);
+        }
+
+        // --- CORE LOGIC ---
+
         async function init() {
             try {
-                // NOTE: Replace these with your actual JSON paths or local arrays
                 const [m, p, c] = await Promise.all([
                     fetch('members.json').then(r=>r.json()).catch(()=>[]), 
                     fetch('projects.json').then(r=>r.json()).catch(()=>[]), 
@@ -110,7 +126,10 @@
                 ]);
                 members = m; projects = p; contributors = c;
                 render();
-            } catch(e) { console.error("Data Fetch Error"); }
+            } catch(e) { 
+                console.error("Data Fetch Error"); 
+                showToast("ERROR: DATABASE_UNREACHABLE");
+            }
         }
 
         function render() {
@@ -164,12 +183,13 @@
         function updateProfile(idx) {
             document.querySelectorAll('.member-tile').forEach((t, i) => t.classList.toggle('active', i === idx));
             const m = members[idx];
+            if(!m) return;
             const tag = (m.id === sessionID) ? 
                 `<div style="color:var(--highlight); font-size:0.8rem; margin-top:5px;">[ ACTIVE ]</div>` : 
                 `<div style="color:var(--text-dim); font-size:0.8rem; margin-top:5px;">[ VERIFIED ]</div>`;
             
             document.getElementById('profile-panel').innerHTML = `
-                <div class="profile-img">${m.char}</div>
+                <div class="profile-img">${m.char || '?'}</div>
                 <div class="profile-info">
                     <span style="color:var(--text-dim); border-left:3px solid var(--highlight); padding-left:15px;">${m.role} // NODE</span>
                     <h2 style="margin:10px 0;">${m.name}</h2>
@@ -178,27 +198,19 @@
                 </div>`;
         }
 
-        function lockTerminal() {
-    // Create the lock overlay
-    const b = document.createElement('div'); 
-    b.style.cssText = "position:fixed; top:0; left:0; width:100vw; height:100vh; background:#000; z-index:10000; display:flex; align-items:center; justify-content:center; color:#00ff88; font-family:var(--font-mono); cursor:pointer;";
-    b.innerHTML = "<h1>[ TERMINAL_LOCKED ]</h1>"; 
-    
-    // REDIRECT LOGIC: Change "index.html" to your actual authorization filename
-    b.onclick = () => {
-        window.location.href = "index.html"; 
-    };
-    
-    document.body.appendChild(b);
-}
-
         document.getElementById('toggle-btn').onclick = function() {
             const grid = document.getElementById('contributor-grid');
             grid.classList.toggle('active');
             this.innerText = grid.classList.contains('active') ? 'Collapse Grid' : 'Expand Grid';
         };
 
-        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.style.display = 'block'; setTimeout(()=>t.style.display='none', 3000); }
+        function showToast(m) { 
+            const t = document.getElementById('toast'); 
+            t.innerText = m; 
+            t.style.display = 'block'; 
+            setTimeout(()=>t.style.display='none', 3000); 
+        }
+
         init();
     </script>
 </body>
