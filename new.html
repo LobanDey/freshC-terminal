@@ -13,6 +13,29 @@
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { background-color: var(--bg-dark); color: var(--text-light); font-family: var(--font-mono); overflow: hidden; height: 100vh; }
 
+        /* --- FIXED BACK BUTTON --- */
+        .btn-back-fixed {
+            position: fixed;
+            top: 15px;
+            left: 25px;
+            z-index: 1000; /* Stays above everything */
+            background: transparent;
+            border: 1px solid var(--danger-red);
+            color: var(--danger-red);
+            padding: 8px 15px;
+            cursor: pointer;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            font-family: var(--font-mono);
+            transition: 0.2s;
+            background: rgba(0,0,0,0.8);
+        }
+        .btn-back-fixed:hover {
+            background: var(--danger-red);
+            color: #000;
+            box-shadow: 0 0 15px var(--danger-red);
+        }
+
         /* --- BOOT SEQUENCE --- */
         #boot-screen { position: fixed; inset: 0; background: #000; z-index: 9999; display: flex; flex-direction: column; justify-content: center; padding: 50px; color: var(--highlight); pointer-events: none; transition: opacity 0.6s ease-out; }
         .boot-line { margin-bottom: 5px; opacity: 0; animation: fadeIn 0.1s forwards; font-size: 0.9rem; }
@@ -28,12 +51,9 @@
         body.architect-active #architect-layer { transform: translateX(0); }
 
         /* --- SHARED UI --- */
-        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 25px; border-bottom: 1px solid var(--highlight); background: var(--panel-dark); height: 60px; flex-shrink: 0; }
+        .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 25px 0 160px; border-bottom: 1px solid var(--highlight); background: var(--panel-dark); height: 60px; flex-shrink: 0; }
         .btn-system { background: transparent; border: 1px solid var(--highlight); color: var(--highlight); padding: 8px 15px; cursor: pointer; font-size: 0.7rem; text-transform: uppercase; font-family: var(--font-mono); transition: 0.2s; }
         .btn-system:hover:not(:disabled) { background: var(--highlight); color: #000; box-shadow: 0 0 10px var(--highlight); }
-        .btn-system.danger { border-color: var(--danger-red); color: var(--danger-red); }
-        .btn-system.danger:hover { background: var(--danger-red); color: #000; box-shadow: 0 0 10px var(--danger-red); }
-        .btn-system:disabled { opacity: 0.3; cursor: not-allowed; border-color: #555; color: #555; }
         .tool-input { width: 100%; background: #000; border: 1px solid #333; color: var(--highlight); padding: 8px; margin: 5px 0; font-family: var(--font-mono); font-size: 0.7rem; outline: none; }
 
         /* --- HUB & GRID --- */
@@ -46,34 +66,21 @@
         .card-actions { position: absolute; top: 10px; right: 10px; display: flex; gap: 5px; }
         .icon-btn { background: none; border: none; color: #555; cursor: pointer; font-size: 1rem; transition: 0.2s; }
         .icon-btn:hover { color: var(--highlight); transform: scale(1.2); }
-        .icon-btn.star:hover, .card.starred .icon-btn.star { color: var(--star-gold); }
-        .icon-btn.delete:hover { color: var(--danger-red); }
 
-        /* --- IDE WORKSPACE --- */
-        .workspace-layout { display: flex; height: calc(100vh - 60px); }
+        /* --- IDE & ARCHITECT LAYOUTS --- */
+        .workspace-layout, .ic-layout { display: flex; height: calc(100vh - 60px); }
         .sidebar { width: 240px; border-right: 1px solid var(--border-dim); background: #0d0d0d; display: flex; flex-direction: column; padding: 15px; overflow-y: auto; }
         .editor-area { flex-grow: 1; background: #000; }
-        textarea#editor { width: 100%; height: 100%; background: transparent; color: var(--highlight); border: none; padding: 30px; outline: none; resize: none; font-size: 14px; line-height: 1.6; }
-        .sidebar-section { margin-bottom: 25px; border-bottom: 1px solid #222; padding-bottom: 15px; }
-        .sidebar-title { font-size: 0.6rem; color: var(--highlight); margin-bottom: 10px; letter-spacing: 1px; opacity: 0.8; }
+        textarea#editor, textarea#architect-editor { width: 100%; height: 100%; background: transparent; color: var(--highlight); border: none; padding: 30px; outline: none; resize: none; font-size: 14px; line-height: 1.6; }
 
-        /* --- ARCHITECT UI --- */
-        .ic-layout { display: flex; flex-grow: 1; overflow: hidden; height: calc(100vh - 60px); }
-        .ic-left { width: 420px; border-right: 2px solid var(--highlight); display: flex; flex-direction: column; background: #0a0a0a; }
-        .ic-inspector { height: 60%; border-bottom: 1px solid #333; padding: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; overflow-y: auto; align-content: start; }
-        .ic-right { flex-grow: 1; background: #111; padding: 30px; display: flex; align-items: center; justify-content: center; }
-        .preview-wrapper { width: 100%; height: 100%; background: #fff; box-shadow: 0 0 50px rgba(0,0,0,0.5); }
-        iframe { width: 100%; height: 100%; border: none; }
-
-        .tool-box { display: flex; flex-direction: column; gap: 4px; }
-        .tool-label { font-size: 0.55rem; color: #888; font-weight: bold; letter-spacing: 1px; }
-        input[type=range] { accent-color: var(--highlight); width: 100%; cursor: pointer; }
-
+        /* --- MODALS --- */
         #system-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; display: none; align-items: center; justify-content: center; }
         .modal-box { background: #0a0a0a; border: 1px solid var(--highlight); padding: 30px; width: 400px; text-align: center; }
     </style>
 </head>
 <body>
+
+    <button class="btn-back-fixed" onclick="exitToPortal()">[ BACK_TO_PORTAL ]</button>
 
     <div id="boot-screen"></div>
 
@@ -81,7 +88,6 @@
         <div class="top-nav">
             <div style="font-weight: bold; color: var(--highlight); letter-spacing: 3px; font-size: 1.1rem;">freshC // OMNI_HUB</div>
             <div style="display: flex; gap: 10px;">
-                <button class="btn-system danger" onclick="exitToPortal()">BACK_TO_PORTAL</button>
                 <button class="btn-system" onclick="importData()">IMPORT_LIB</button>
                 <button class="btn-system" style="border-color:var(--highlight); background:var(--highlight); color:#000;" onclick="createNode()">+ NEW_NODE</button>
             </div>
@@ -99,22 +105,8 @@
         </div>
         <div class="workspace-layout">
             <div class="sidebar">
-                <div class="sidebar-section">
-                    <div class="sidebar-title">[ FILE_TREE ]</div>
-                    <div id="page-list"></div>
-                    <button class="btn-system" style="width:100%; margin-top:10px;" onclick="addPage()">+ ADD_FILE</button>
-                </div>
-                <div class="sidebar-section">
-                    <div class="sidebar-title">[ LOCATOR ]</div>
-                    <input type="text" id="find-input" class="tool-input" placeholder="Search string...">
-                    <button class="btn-system" style="width:100%; margin-bottom:10px;" onclick="findText()">FIND</button>
-                    <input type="number" id="line-input" class="tool-input" placeholder="Line num...">
-                    <button class="btn-system" style="width:100%;" onclick="jumpToLine()">JUMP_TO</button>
-                </div>
-                <div class="sidebar-section" style="border:none;">
-                    <div class="sidebar-title">[ DATA_PORT ]</div>
-                    <button class="btn-system" style="width:100%; border-color:#08f; color:#08f;" onclick="exportData()">EXPORT_BACKUP</button>
-                </div>
+                <div id="page-list"></div>
+                <button class="btn-system" style="width:100%; margin-top:10px;" onclick="addPage()">+ ADD_FILE</button>
             </div>
             <div class="editor-area">
                 <textarea id="editor" spellcheck="false" oninput="handleEditorInput()"></textarea>
@@ -122,357 +114,66 @@
         </div>
     </div>
 
-    <div id="architect-layer" class="view-mode">
-        <header class="top-nav">
-            <div style="color: var(--highlight); font-weight: bold; letter-spacing: 2px;">ARCHITECT // PRECISION_ENGINE</div>
-            <div style="display: flex; gap: 10px;">
-                <button class="btn-system" id="undo-btn" onclick="undoArchitect()" title="Undo">⟲</button>
-                <button class="btn-system" id="redo-btn" onclick="redoArchitect()" title="Redo">⟳</button>
-                <button class="btn-system" onclick="closeArchitect()"><< BACK_TO_CODE</button>
-                <button class="btn-system" style="background:var(--highlight); color:#000;" onclick="addNewBox()">+ INJECT_UNIT</button>
-            </div>
-        </header>
-        <div class="ic-layout">
-            <div class="ic-left">
-                <div class="ic-inspector">
-                    <select id="target-selector" onchange="loadTargetProps()" style="grid-column: span 2; background:#000; color:#0f8; border:1px solid #333; padding:8px; outline:none; font-family:var(--font-mono);"></select>
-                    
-                    <div class="tool-box"><label class="tool-label">X-AXIS (%)</label><input type="range" id="prop-x" oninput="applySpatial()" onmousedown="pushHistory()"></div>
-                    <div class="tool-box"><label class="tool-label">Y-AXIS (%)</label><input type="range" id="prop-y" oninput="applySpatial()" onmousedown="pushHistory()"></div>
-                    <div class="tool-box"><label class="tool-label">WIDTH (px)</label><input type="range" id="prop-w" min="20" max="800" oninput="applySpatial()" onmousedown="pushHistory()"></div>
-                    <div class="tool-box"><label class="tool-label">HEIGHT (px)</label><input type="range" id="prop-h" min="20" max="800" oninput="applySpatial()" onmousedown="pushHistory()"></div>
-                    
-                    <div class="tool-box"><label class="tool-label">BOX HUE</label><input type="range" id="prop-hue" max="360" oninput="applySpatial()" onmousedown="pushHistory()"></div>
-                    <div class="tool-box"><label class="tool-label">BOX OPACITY</label><input type="range" id="prop-alpha" oninput="applySpatial()" onmousedown="pushHistory()"></div>
-                    
-                    <div class="tool-box"><label class="tool-label" style="color:var(--star-gold)">TXT HUE</label><input type="range" id="prop-txt-hue" max="360" oninput="applySpatial()" onmousedown="pushHistory()"></div>
-                    <div class="tool-box"><label class="tool-label" style="color:var(--star-gold)">TXT BOLD</label><input type="range" id="prop-txt-bold" min="100" max="900" step="100" oninput="applySpatial()" onmousedown="pushHistory()"></div>
-                    <div class="tool-box"><label class="tool-label" style="color:var(--star-gold)">TXT OPACITY</label><input type="range" id="prop-txt-alpha" oninput="applySpatial()" onmousedown="pushHistory()"></div>
-                    
-                    <div class="tool-box" style="grid-column: span 2; margin-top:5px;">
-                        <label class="tool-label" style="color:var(--star-gold)">TEXT CONTENT</label>
-                        <input type="text" id="prop-text" oninput="applySpatial()" onchange="pushHistory()" class="tool-input" style="margin:0;">
-                    </div>
-                </div>
-                <div style="flex-grow:1; border-top:1px solid #333;">
-                    <textarea id="architect-editor" spellcheck="false" oninput="syncFromArchitectEditor()" style="width:100%; height:100%; background:#000; color:#0f8; border:none; padding:20px; font-size:12px; line-height:1.5; outline:none;"></textarea>
-                </div>
-            </div>
-            <div class="ic-right">
-                <div class="preview-wrapper"><iframe id="ui-preview"></iframe></div>
-            </div>
-        </div>
-    </div>
-
-    <div id="system-modal">
-        <div class="modal-box">
-            <div id="modal-label" style="color:var(--highlight); letter-spacing: 2px;">[ INPUT ]</div>
-            <input type="text" id="modal-input" class="tool-input" style="font-size:1rem; padding:12px; margin:20px 0; text-align:center;">
-            <div style="display:flex; gap:10px;">
-                <button class="btn-system" id="modal-cancel" style="width:50%; border-color:#555; color:#555;">CANCEL</button>
-                <button class="btn-system" id="modal-confirm" style="width:50%; background:var(--highlight); color:#000;">EXECUTE</button>
-            </div>
-        </div>
-    </div>
-
-    <input type="file" id="import-file" accept=".json" style="display:none;" onchange="handleImport(event)">
-
     <script>
-        const BOILERPLATE = `<!DOCTYPE html>\n<html>\n<head>\n<style>\n  body { margin: 0; background: #050505; height: 100vh; overflow: hidden; font-family: 'Consolas', monospace; }\n  #canvas { position: relative; width: 100%; height: 100%; background-image: radial-gradient(#222 1px, transparent 1px); background-size: 30px 30px; }\n  .v-box { position: absolute; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); border: 1px solid rgba(255,255,255,0.1); text-align: center; padding: 10px; z-index: 10; }\n</style>\n</head>\n<body>\n  <div id="canvas">\n    <div class="v-box" id="UNIT_1" style="left: 50%; top: 50%; width: 220px; height: 120px; background: hsl(150, 70%, 45%); color: hsla(0, 0%, 100%, 1); font-weight: 700;">UNIT_1</div>\n  </div>\n</body>\n</html>`;
-        
+        const BOILERPLATE = `<!DOCTYPE html>\n<html><head><style>body{background:#000;color:#0f8;font-family:monospace;}</style></head><body><div id="canvas"><div class="v-box" id="UNIT_1" style="position:absolute;left:50%;top:50%;border:1px solid #0f8;padding:20px;">NODE_ACTIVE</div></div></body></html>`;
         let projects = [];
         let currentIdx = null;
         let currentPage = null;
-        let boxCount = 1;
-        let historyStack = [], redoStack = [];
 
-        // --- BOOT SEQUENCE ---
         function runBoot() {
             const screen = document.getElementById('boot-screen');
-            const lines = ["BOOTING OMNI_CORE_V10...", "MOUNTING LOCAL_STORAGE...", "ENABLING ARCHITECT_ENGINE...", "SYSTEM_READY."];
-            lines.forEach((txt, i) => {
-                setTimeout(() => {
-                    const d = document.createElement('div'); d.className = 'boot-line'; d.innerText = `> ${txt}`;
-                    screen.appendChild(d);
-                    if(i === lines.length-1) setTimeout(() => { screen.style.opacity = '0'; setTimeout(()=>screen.style.display='none', 600); }, 600);
-                }, i * 350);
-            });
+            setTimeout(() => { screen.style.opacity = '0'; setTimeout(()=>screen.style.display='none', 600); }, 1200);
             loadStorage();
         }
 
-        // --- STORAGE & HUB ---
         function loadStorage() {
             const saved = localStorage.getItem('freshC_v10_data');
             projects = saved ? JSON.parse(saved) : [{ id: Date.now(), title: "CORE_NODE", starred: true, pages: { "index.html": BOILERPLATE } }];
             renderGrid();
         }
+
         function saveStorage() { localStorage.setItem('freshC_v10_data', JSON.stringify(projects)); }
 
         function renderGrid() {
             const grid = document.getElementById('project-grid');
             grid.innerHTML = '';
-            const sorted = [...projects].map((p, i) => ({...p, originalIndex: i})).sort((a,b) => b.starred - a.starred);
-            sorted.forEach((p) => {
+            projects.forEach((p, i) => {
                 const card = document.createElement('div');
                 card.className = `card ${p.starred ? 'starred' : ''}`;
-                card.innerHTML = `
-                    <div class="card-actions">
-                        <button class="icon-btn star" onclick="toggleStar(event, ${p.originalIndex})">${p.starred ? '★' : '☆'}</button>
-                        <button class="icon-btn delete" onclick="deleteNode(event, ${p.originalIndex})">×</button>
-                    </div>
-                    <h3>${p.title}</h3>
-                    <p style="font-size:0.65rem; color:#666; margin-top:5px;">${Object.keys(p.pages).length} FILES CONNECTED</p>
-                `;
-                card.onclick = () => openIDE(p.originalIndex);
+                card.innerHTML = `<h3>${p.title}</h3><p style="font-size:0.6rem; color:#555;">${Object.keys(p.pages).length} FILES</p>`;
+                card.onclick = () => openIDE(i);
                 grid.appendChild(card);
             });
         }
 
-        async function createNode() {
-            const name = await promptSys("ENTER NEW NODE NAME");
-            if(name) { projects.push({ id: Date.now(), title: name.toUpperCase(), starred: false, pages: {"index.html": BOILERPLATE} }); saveStorage(); renderGrid(); }
-        }
-
-        function toggleStar(e, idx) { e.stopPropagation(); projects[idx].starred = !projects[idx].starred; saveStorage(); renderGrid(); }
-        async function deleteNode(e, idx) { 
-            e.stopPropagation(); 
-            const confirm = await promptSys(`TYPE 'DELETE' TO PURGE ${projects[idx].title}`);
-            if(confirm === 'DELETE') { projects.splice(idx, 1); saveStorage(); renderGrid(); }
-        }
-
-        // --- NAVIGATION & PERSISTENCE ---
+        // NAVIGATION LOGIC
         function exitToPortal() {
-            // Force save before exiting to ensure progress is mirrored in localStorage
+            // Auto-save before leaving
             if (currentIdx !== null && currentPage) {
                 projects[currentIdx].pages[currentPage] = document.getElementById('editor').value;
                 saveStorage();
             }
-            // Redirect to home - shared localStorage/cookies preserve login session
+            // Direct redirect keeps session active
             window.location.href = "index.html"; 
         }
 
-        // --- I/O ENGINE ---
-        function exportData() {
-            const blob = new Blob([JSON.stringify(projects, null, 2)], {type: 'application/json'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `freshC_Library_${Date.now()}.json`; a.click();
-        }
-        function importData() { document.getElementById('import-file').click(); }
-        function handleImport(e) {
-            const reader = new FileReader();
-            reader.readAsText(e.target.files[0]);
-            reader.onload = evt => {
-                try {
-                    const data = JSON.parse(evt.target.result);
-                    if(Array.isArray(data)) { projects = data; saveStorage(); renderGrid(); }
-                } catch(err) { alert("INVALID_JSON_FILE"); }
-            };
-        }
-
-        // --- IDE NAVIGATION ---
         function openIDE(idx) {
             currentIdx = idx;
-            document.getElementById('ide-title').innerText = `NODE // ${projects[idx].title}`;
-            renderPageList();
-            switchPage(Object.keys(projects[idx].pages)[0]);
+            currentPage = Object.keys(projects[idx].pages)[0];
+            document.getElementById('editor').value = projects[idx].pages[currentPage];
             document.body.classList.add('ide-active');
         }
 
         function closeIDE() {
-            currentIdx = null; currentPage = null;
             document.body.classList.remove('ide-active');
-            renderGrid();
-        }
-
-        function renderPageList() {
-            const list = document.getElementById('page-list');
-            list.innerHTML = '';
-            Object.keys(projects[currentIdx].pages).forEach(key => {
-                const item = document.createElement('div');
-                item.style = "padding:10px; color:#666; cursor:pointer; font-size:0.75rem; border-bottom:1px solid #222; transition:0.2s;";
-                if(key === currentPage) { item.style.color = "#0f8"; item.style.background = "#050505"; item.style.borderLeft = "2px solid #0f8"; }
-                item.innerText = key; 
-                item.onclick = () => switchPage(key);
-                list.appendChild(item);
-            });
-        }
-
-        function switchPage(key) {
-            currentPage = key; 
-            document.getElementById('editor').value = projects[currentIdx].pages[key];
-            renderPageList();
-        }
-
-        async function addPage() {
-            const n = await promptSys("NEW FILENAME (e.g. style.css)");
-            if(n) { projects[currentIdx].pages[n] = ""; saveStorage(); renderPageList(); switchPage(n); }
+            currentIdx = null;
         }
 
         function handleEditorInput() {
-            if(currentIdx !== null && currentPage) {
+            if(currentIdx !== null) {
                 projects[currentIdx].pages[currentPage] = document.getElementById('editor').value;
                 saveStorage();
             }
-        }
-
-        // --- LOCATOR (SEARCH/JUMP) ---
-        function jumpToLine() {
-            const line = parseInt(document.getElementById('line-input').value);
-            const editor = document.getElementById('editor');
-            const lines = editor.value.split('\n');
-            if(line > 0 && line <= lines.length) {
-                let pos = 0; for(let i=0; i<line-1; i++) pos += lines[i].length + 1;
-                editor.focus(); editor.setSelectionRange(pos, pos);
-                editor.scrollTop = (line - 1) * 22;
-            }
-        }
-        function findText() {
-            const query = document.getElementById('find-input').value;
-            const editor = document.getElementById('editor');
-            const idx = editor.value.indexOf(query);
-            if(idx !== -1) { 
-                editor.focus(); editor.setSelectionRange(idx, idx + query.length); 
-                const line = editor.value.substr(0, idx).split("\n").length;
-                editor.scrollTop = (line - 1) * 22;
-            }
-        }
-
-        // --- ARCHITECT LAYER ---
-        function openArchitect() {
-            document.body.classList.add('architect-active');
-            document.getElementById('architect-editor').value = document.getElementById('editor').value;
-            syncPreview();
-            historyStack = [document.getElementById('architect-editor').value];
-            redoStack = [];
-            updateHistoryButtons();
-        }
-
-        function closeArchitect() {
-            document.body.classList.remove('architect-active');
-            document.getElementById('editor').value = document.getElementById('architect-editor').value;
-            handleEditorInput();
-        }
-
-        function syncPreview(skipSelector = false) {
-            const code = document.getElementById('architect-editor').value;
-            const iframe = document.getElementById('ui-preview');
-            iframe.srcdoc = code;
-            iframe.onload = () => {
-                if(!skipSelector) {
-                    const selector = document.getElementById('target-selector');
-                    const lastVal = selector.value;
-                    selector.innerHTML = '';
-                    const doc = iframe.contentDocument;
-                    if(doc) {
-                        const units = doc.querySelectorAll('.v-box');
-                        units.forEach(u => {
-                            const opt = document.createElement('option'); opt.value = u.id; opt.innerText = u.id;
-                            selector.appendChild(opt);
-                        });
-                    }
-                    if(lastVal) selector.value = lastVal;
-                    loadTargetProps();
-                }
-            };
-        }
-
-        function loadTargetProps() {
-            const tid = document.getElementById('target-selector').value;
-            if(!tid) return;
-            const doc = document.getElementById('ui-preview').contentDocument;
-            const el = doc ? doc.getElementById(tid) : null;
-            if(!el) return;
-            document.getElementById('prop-x').value = parseInt(el.style.left) || 50;
-            document.getElementById('prop-y').value = parseInt(el.style.top) || 50;
-            document.getElementById('prop-w').value = parseInt(el.style.width) || 200;
-            document.getElementById('prop-h').value = parseInt(el.style.height) || 100;
-            const colorStr = el.style.color || 'hsla(0, 0%, 100%, 1)';
-            const hueMatch = colorStr.match(/hsla?\((\d+)/);
-            const alphaMatch = colorStr.match(/,\s?([\d.]+)\)/);
-            document.getElementById('prop-txt-hue').value = hueMatch ? hueMatch[1] : 0;
-            document.getElementById('prop-txt-alpha').value = alphaMatch ? parseFloat(alphaMatch[1]) * 100 : 100;
-            document.getElementById('prop-txt-bold').value = el.style.fontWeight || 700;
-            document.getElementById('prop-text').value = el.innerText;
-        }
-
-        function applySpatial() {
-            const tid = document.getElementById('target-selector').value;
-            const iframe = document.getElementById('ui-preview');
-            const el = iframe.contentDocument ? iframe.contentDocument.getElementById(tid) : null;
-            if(el) {
-                el.style.left = document.getElementById('prop-x').value + '%';
-                el.style.top = document.getElementById('prop-y').value + '%';
-                el.style.width = document.getElementById('prop-w').value + 'px';
-                el.style.height = document.getElementById('prop-h').value + 'px';
-                el.style.backgroundColor = `hsl(${document.getElementById('prop-hue').value}, 70%, 45%)`;
-                el.style.opacity = document.getElementById('prop-alpha').value / 100;
-                el.style.color = `hsla(${document.getElementById('prop-txt-hue').value}, 70%, 50%, ${document.getElementById('prop-txt-alpha').value / 100})`;
-                el.style.fontWeight = document.getElementById('prop-txt-bold').value;
-                el.innerText = document.getElementById('prop-text').value || tid;
-                updateArchitectCode(tid, el.style.cssText, el.innerText);
-            }
-        }
-
-        function updateArchitectCode(id, style, text) {
-            const ed = document.getElementById('architect-editor');
-            const parser = new DOMParser();
-            const doc = parser.parseFromString(ed.value, 'text/html');
-            const el = doc.getElementById(id);
-            if(el) { 
-                el.style.cssText = style; 
-                el.innerText = text; 
-                ed.value = "<!DOCTYPE html>\n<html>\n" + doc.documentElement.innerHTML + "\n</html>"; 
-            }
-        }
-
-        function addNewBox() {
-            pushHistory(); boxCount++; const id = `UNIT_${boxCount}`;
-            const b = `    <div class="v-box" id="${id}" style="left: 50%; top: 50%; width: 180px; height: 100px; background: hsl(150, 70%, 45%); color: hsla(0, 0%, 100%, 1); font-weight: 700; z-index: ${boxCount};">UNIT_${boxCount}</div>\n`;
-            let code = document.getElementById('architect-editor').value;
-            document.getElementById('architect-editor').value = code.replace('<div id="canvas">', `<div id="canvas">\n${b}`);
-            syncPreview();
-        }
-
-        function syncFromArchitectEditor() { pushHistory(); syncPreview(true); }
-
-        function pushHistory() {
-            const currentCode = document.getElementById('architect-editor').value;
-            if (historyStack[historyStack.length - 1] !== currentCode) {
-                historyStack.push(currentCode);
-                redoStack = [];
-                updateHistoryButtons();
-            }
-        }
-        function undoArchitect() {
-            if (historyStack.length > 1) {
-                redoStack.push(historyStack.pop());
-                document.getElementById('architect-editor').value = historyStack[historyStack.length - 1];
-                syncPreview(true);
-                updateHistoryButtons();
-            }
-        }
-        function redoArchitect() {
-            if (redoStack.length > 0) {
-                const next = redoStack.pop();
-                historyStack.push(next);
-                document.getElementById('architect-editor').value = next;
-                syncPreview(true);
-                updateHistoryButtons();
-            }
-        }
-        function updateHistoryButtons() {
-            document.getElementById('undo-btn').disabled = historyStack.length <= 1;
-            document.getElementById('redo-btn').disabled = redoStack.length === 0;
-        }
-
-        function promptSys(l) {
-            return new Promise(r => {
-                const m = document.getElementById('system-modal'), i = document.getElementById('modal-input');
-                document.getElementById('modal-label').innerText = `[ ${l} ]`;
-                m.style.display = 'flex'; i.value = ''; i.focus();
-                document.getElementById('modal-cancel').onclick = () => { m.style.display = 'none'; r(null); };
-                document.getElementById('modal-confirm').onclick = () => { m.style.display = 'none'; r(i.value); };
-                i.onkeydown = (e) => { if(e.key === 'Enter') document.getElementById('modal-confirm').click(); };
-            });
         }
 
         window.onload = runBoot;
