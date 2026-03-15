@@ -31,6 +31,8 @@
         .top-nav { display: flex; justify-content: space-between; align-items: center; padding: 0 25px; border-bottom: 1px solid var(--highlight); background: var(--panel-dark); height: 60px; flex-shrink: 0; }
         .btn-system { background: transparent; border: 1px solid var(--highlight); color: var(--highlight); padding: 8px 15px; cursor: pointer; font-size: 0.7rem; text-transform: uppercase; font-family: var(--font-mono); transition: 0.2s; }
         .btn-system:hover:not(:disabled) { background: var(--highlight); color: #000; box-shadow: 0 0 10px var(--highlight); }
+        .btn-system.danger { border-color: var(--danger-red); color: var(--danger-red); }
+        .btn-system.danger:hover { background: var(--danger-red); color: #000; box-shadow: 0 0 10px var(--danger-red); }
         .btn-system:disabled { opacity: 0.3; cursor: not-allowed; border-color: #555; color: #555; }
         .tool-input { width: 100%; background: #000; border: 1px solid #333; color: var(--highlight); padding: 8px; margin: 5px 0; font-family: var(--font-mono); font-size: 0.7rem; outline: none; }
 
@@ -79,6 +81,7 @@
         <div class="top-nav">
             <div style="font-weight: bold; color: var(--highlight); letter-spacing: 3px; font-size: 1.1rem;">freshC // OMNI_HUB</div>
             <div style="display: flex; gap: 10px;">
+                <button class="btn-system danger" onclick="exitToPortal()">BACK_TO_PORTAL</button>
                 <button class="btn-system" onclick="importData()">IMPORT_LIB</button>
                 <button class="btn-system" style="border-color:var(--highlight); background:var(--highlight); color:#000;" onclick="createNode()">+ NEW_NODE</button>
             </div>
@@ -175,7 +178,7 @@
     <input type="file" id="import-file" accept=".json" style="display:none;" onchange="handleImport(event)">
 
     <script>
-        const BOILERPLATE = `<!DOCTYPE html>\n<html>\n<head>\n<style>\n  body { margin: 0; background: #050505; height: 100vh; overflow: hidden; font-family: 'Consolas', monospace; }\n  #canvas { position: relative; width: 100%; height: 100%; background-image: radial-gradient(#222 1px, transparent 1px); background-size: 30px 30px; }\n  /* Flex keeps text centered, z-index keeps it visible */\n  .v-box { position: absolute; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); border: 1px solid rgba(255,255,255,0.1); text-align: center; padding: 10px; z-index: 10; }\n</style>\n</head>\n<body>\n  <div id="canvas">\n    <div class="v-box" id="UNIT_1" style="left: 50%; top: 50%; width: 220px; height: 120px; background: hsl(150, 70%, 45%); color: hsla(0, 0%, 100%, 1); font-weight: 700;">UNIT_1</div>\n  </div>\n</body>\n</html>`;
+        const BOILERPLATE = `<!DOCTYPE html>\n<html>\n<head>\n<style>\n  body { margin: 0; background: #050505; height: 100vh; overflow: hidden; font-family: 'Consolas', monospace; }\n  #canvas { position: relative; width: 100%; height: 100%; background-image: radial-gradient(#222 1px, transparent 1px); background-size: 30px 30px; }\n  .v-box { position: absolute; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); border: 1px solid rgba(255,255,255,0.1); text-align: center; padding: 10px; z-index: 10; }\n</style>\n</head>\n<body>\n  <div id="canvas">\n    <div class="v-box" id="UNIT_1" style="left: 50%; top: 50%; width: 220px; height: 120px; background: hsl(150, 70%, 45%); color: hsla(0, 0%, 100%, 1); font-weight: 700;">UNIT_1</div>\n  </div>\n</body>\n</html>`;
         
         let projects = [];
         let currentIdx = null;
@@ -208,10 +211,7 @@
         function renderGrid() {
             const grid = document.getElementById('project-grid');
             grid.innerHTML = '';
-            
-            // Sort: Starred first
             const sorted = [...projects].map((p, i) => ({...p, originalIndex: i})).sort((a,b) => b.starred - a.starred);
-
             sorted.forEach((p) => {
                 const card = document.createElement('div');
                 card.className = `card ${p.starred ? 'starred' : ''}`;
@@ -238,6 +238,11 @@
             e.stopPropagation(); 
             const confirm = await promptSys(`TYPE 'DELETE' TO PURGE ${projects[idx].title}`);
             if(confirm === 'DELETE') { projects.splice(idx, 1); saveStorage(); renderGrid(); }
+        }
+
+        // --- NAVIGATION ---
+        function exitToPortal() {
+            window.location.href = "index.html"; 
         }
 
         // --- I/O ENGINE ---
@@ -311,7 +316,7 @@
             if(line > 0 && line <= lines.length) {
                 let pos = 0; for(let i=0; i<line-1; i++) pos += lines[i].length + 1;
                 editor.focus(); editor.setSelectionRange(pos, pos);
-                editor.scrollTop = (line - 1) * 22; // approx line height
+                editor.scrollTop = (line - 1) * 22;
             }
         }
         function findText() {
@@ -345,7 +350,6 @@
             const code = document.getElementById('architect-editor').value;
             const iframe = document.getElementById('ui-preview');
             iframe.srcdoc = code;
-            
             iframe.onload = () => {
                 if(!skipSelector) {
                     const selector = document.getElementById('target-selector');
@@ -371,18 +375,13 @@
             const doc = document.getElementById('ui-preview').contentDocument;
             const el = doc ? doc.getElementById(tid) : null;
             if(!el) return;
-
-            // Spatial
             document.getElementById('prop-x').value = parseInt(el.style.left) || 50;
             document.getElementById('prop-y').value = parseInt(el.style.top) || 50;
             document.getElementById('prop-w').value = parseInt(el.style.width) || 200;
             document.getElementById('prop-h').value = parseInt(el.style.height) || 100;
-            
-            // Text Extraction (hsla)
             const colorStr = el.style.color || 'hsla(0, 0%, 100%, 1)';
             const hueMatch = colorStr.match(/hsla?\((\d+)/);
             const alphaMatch = colorStr.match(/,\s?([\d.]+)\)/);
-            
             document.getElementById('prop-txt-hue').value = hueMatch ? hueMatch[1] : 0;
             document.getElementById('prop-txt-alpha').value = alphaMatch ? parseFloat(alphaMatch[1]) * 100 : 100;
             document.getElementById('prop-txt-bold').value = el.style.fontWeight || 700;
@@ -394,21 +393,15 @@
             const iframe = document.getElementById('ui-preview');
             const el = iframe.contentDocument ? iframe.contentDocument.getElementById(tid) : null;
             if(el) {
-                // Apply spatial
                 el.style.left = document.getElementById('prop-x').value + '%';
                 el.style.top = document.getElementById('prop-y').value + '%';
                 el.style.width = document.getElementById('prop-w').value + 'px';
                 el.style.height = document.getElementById('prop-h').value + 'px';
-                
-                // Background
                 el.style.backgroundColor = `hsl(${document.getElementById('prop-hue').value}, 70%, 45%)`;
                 el.style.opacity = document.getElementById('prop-alpha').value / 100;
-                
-                // Text Apply
                 el.style.color = `hsla(${document.getElementById('prop-txt-hue').value}, 70%, 50%, ${document.getElementById('prop-txt-alpha').value / 100})`;
                 el.style.fontWeight = document.getElementById('prop-txt-bold').value;
                 el.innerText = document.getElementById('prop-text').value || tid;
-                
                 updateArchitectCode(tid, el.style.cssText, el.innerText);
             }
         }
@@ -435,7 +428,6 @@
 
         function syncFromArchitectEditor() { pushHistory(); syncPreview(true); }
 
-        // --- UNDO / REDO ---
         function pushHistory() {
             const currentCode = document.getElementById('architect-editor').value;
             if (historyStack[historyStack.length - 1] !== currentCode) {
@@ -466,16 +458,13 @@
             document.getElementById('redo-btn').disabled = redoStack.length === 0;
         }
 
-        // --- UTILS ---
         function promptSys(l) {
             return new Promise(r => {
                 const m = document.getElementById('system-modal'), i = document.getElementById('modal-input');
                 document.getElementById('modal-label').innerText = `[ ${l} ]`;
                 m.style.display = 'flex'; i.value = ''; i.focus();
-                
                 document.getElementById('modal-cancel').onclick = () => { m.style.display = 'none'; r(null); };
                 document.getElementById('modal-confirm').onclick = () => { m.style.display = 'none'; r(i.value); };
-                
                 i.onkeydown = (e) => { if(e.key === 'Enter') document.getElementById('modal-confirm').click(); };
             });
         }
