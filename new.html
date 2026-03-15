@@ -240,8 +240,14 @@
             if(confirm === 'DELETE') { projects.splice(idx, 1); saveStorage(); renderGrid(); }
         }
 
-        // --- NAVIGATION ---
+        // --- NAVIGATION & PERSISTENCE ---
         function exitToPortal() {
+            // Force save before exiting to ensure progress is mirrored in localStorage
+            if (currentIdx !== null && currentPage) {
+                projects[currentIdx].pages[currentPage] = document.getElementById('editor').value;
+                saveStorage();
+            }
+            // Redirect to home - shared localStorage/cookies preserve login session
             window.location.href = "index.html"; 
         }
 
