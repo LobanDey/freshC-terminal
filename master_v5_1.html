@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Terminal | V5.1</title>
+    <title>Project Terminal | V5.4</title>
     <style>
         :root {
             --terminal-green: #00ff41;
@@ -36,41 +36,23 @@
         .section { display: none; flex: 1; padding: 40px; overflow-y: auto; width: 100%; }
         .section.active { display: block; }
 
-        /* NAVIGATION: BACK BUTTON */
         .btn-back-fixed { 
-            position: fixed; 
-            bottom: 30px; 
-            left: 30px; 
-            background: rgba(0,0,0,0.8); 
-            border: 1px solid var(--terminal-green); 
-            color: var(--terminal-green); 
-            padding: 12px 20px; 
-            font-size: 0.8rem; 
-            cursor: pointer; 
-            z-index: 500; 
-            transition: 0.3s;
-            letter-spacing: 2px;
-            box-shadow: var(--glow-green);
+            position: fixed; bottom: 30px; left: 30px; background: rgba(0,0,0,0.8); border: 1px solid var(--terminal-green); color: var(--terminal-green); padding: 12px 20px; font-size: 0.8rem; cursor: pointer; z-index: 500; transition: 0.3s; letter-spacing: 2px; box-shadow: var(--glow-green);
         }
-        .btn-back-fixed:hover {
-            background: var(--terminal-green);
-            color: #000;
-            box-shadow: 0 0 25px var(--terminal-green);
-        }
+        .btn-back-fixed:hover { background: var(--terminal-green); color: #000; box-shadow: 0 0 25px var(--terminal-green); }
 
-        /* ADMIN MODES */
         .admin-toolbar { display: flex; justify-content: flex-end; gap: 15px; max-width: 1200px; margin: 0 auto 30px auto; }
         .admin-btn { background: #111; border: 2px solid #444; color: #888; width: 55px; height: 55px; cursor: pointer; font-size: 1.5rem; transition: 0.2s; }
         .mode-star .admin-btn#btn-star { border-color: var(--terminal-gold); color: var(--terminal-gold); box-shadow: var(--glow-gold); }
         .mode-delete .admin-btn#btn-del { border-color: var(--terminal-red); color: var(--terminal-red); box-shadow: var(--glow-red); }
 
         .grid-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; max-width: 1200px; margin: 0 auto; align-content: start; }
-        .card { background: var(--card-bg); border: 2px solid var(--border-dim); height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; }
+        .card { background: var(--card-bg); border: 2px solid var(--border-dim); height: 200px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: 0.3s; position: relative; }
         .card:hover { border-color: var(--terminal-green); box-shadow: var(--glow-green); }
         .card.starred { border-color: var(--terminal-gold) !important; box-shadow: var(--glow-gold); }
+        .mode-star .card:hover { border-color: var(--terminal-gold) !important; }
         .mode-delete .card:hover { border-color: var(--terminal-red) !important; box-shadow: var(--glow-red); }
 
-        /* MANIFEST & WYSIWYG */
         .log-layout { display: flex; gap: 40px; height: calc(100vh - 200px); width: 100%; max-width: 1400px; margin: 0 auto; }
         .log-list { flex: 0 0 350px; overflow-y: auto; border: 2px solid #222; padding: 10px; }
         .log-item-btn { width: 100%; background: #111; border: 1px solid #333; color: #00661a; padding: 15px; text-align: left; cursor: pointer; margin-bottom: 10px; }
@@ -80,22 +62,10 @@
         .summary-box { background: #080808; border: 1px solid #222; padding: 15px; margin-bottom: 15px; font-size: 0.7rem; color: #444; text-transform: uppercase; position: relative; }
         .unlocked .summary-box { border-color: var(--terminal-gold); color: var(--terminal-gold); }
         
-        .purge-btn { position: absolute; right: 15px; top: 15px; background: transparent; border: 1px solid var(--terminal-red); color: var(--terminal-red); padding: 5px 10px; cursor: pointer; font-size: 0.6rem; transition: 0.2s; visibility: hidden; }
-        .unlocked .purge-btn { visibility: visible; }
-        .purge-btn:hover { background: var(--terminal-red); color: #000; box-shadow: var(--glow-red); }
-
         .editor-container { flex: 1; border: 2px solid #222; background: #000; display: flex; flex-direction: column; }
         .unlocked .editor-container { border-color: var(--terminal-green); }
-        .editor-toolbar { background: #111; border-bottom: 1px solid #222; padding: 10px; display: flex; gap: 10px; opacity: 0.2; pointer-events: none; }
-        .unlocked .editor-toolbar { opacity: 1; pointer-events: auto; }
-        
-        .btn-state { width: 45px !important; margin: 0 !important; font-size: 0.8rem !important; padding: 5px !important; }
-        .btn-state.active { background: var(--terminal-green); color: #000; box-shadow: var(--glow-green); }
-
         .editor-body { flex: 1; background: transparent; border: none; color: var(--terminal-green); padding: 25px; font-size: 1.1rem; outline: none; overflow-y: auto; opacity: 0.1; }
         .unlocked .editor-body { opacity: 1; }
-        .editor-body b { color: #fff; text-shadow: 0 0 5px var(--terminal-green); }
-        .editor-body u { text-decoration-color: var(--terminal-green); }
 
         /* BUILDER */
         #builder-view { display: none; height: 100vh; flex-direction: column; }
@@ -104,6 +74,7 @@
         .pin { width: 12px; height: 12px; background: var(--terminal-green); position: absolute; border-radius: 2px; cursor: pointer; border: 1px solid #000; transform: translateY(-50%); }
         .btn-ctrl { background: #111; border: 2px solid #444; color: #bbb; padding: 12px; cursor: pointer; text-transform: uppercase; font-weight: bold; width: 100%; margin-bottom: 10px; }
         .btn-ctrl:hover { border-color: var(--terminal-green); color: #fff; }
+        .btn-ctrl.active-mode { border-color: var(--terminal-red); color: var(--terminal-red); box-shadow: var(--glow-red); }
 
         #terminal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: none; align-items: center; justify-content: center; }
         .terminal-box { width: 500px; border: 2px solid var(--terminal-green); background: #000; padding: 40px; box-shadow: var(--glow-green); }
@@ -113,7 +84,7 @@
 <body class="mode-normal">
 
     <div id="boot-screen">
-        <div style="letter-spacing:5px">DATA_VISUALIZER_V5.1</div>
+        <div style="letter-spacing:5px">DATA_VISUALIZER_V5.4</div>
         <div class="loader"></div>
     </div>
 
@@ -137,16 +108,8 @@
             <div class="log-layout">
                 <div id="log-list" class="log-list"></div>
                 <div class="log-right" id="editor-ui">
-                    <div class="summary-box" id="circuit-summary">
-                        [METADATA]: NO_SELECTION
-                        <button class="purge-btn" onclick="purgeNode()">DATA_PURGE</button>
-                    </div>
+                    <div class="summary-box" id="circuit-summary">[METADATA]: NO_SELECTION</div>
                     <div class="editor-container">
-                        <div class="editor-toolbar">
-                            <button id="bullet-toggle" onclick="execCmd('insertUnorderedList')" class="btn-ctrl btn-state">LIST</button>
-                            <button id="bold-toggle" onclick="execCmd('bold')" class="btn-ctrl btn-state">B</button>
-                            <button id="under-toggle" onclick="execCmd('underline')" class="btn-ctrl btn-state">U</button>
-                        </div>
                         <div id="note-area" class="editor-body" contenteditable="false" oninput="saveNote()"></div>
                     </div>
                 </div>
@@ -169,10 +132,13 @@
                 <button class="btn-ctrl" onclick="addComponent('RESISTOR', 2)">+ RESISTOR</button>
                 <button class="btn-ctrl" onclick="addComponent('IC_8_PIN', 8)">+ IC_8_PIN</button>
                 <button class="btn-ctrl" onclick="triggerCustom()" style="border-color:var(--terminal-gold); color:var(--terminal-gold);">+ CUSTOM_NODE</button>
+                <hr style="border:0; border-top:1px solid #333; margin:10px 0;">
+                <button id="eraser-btn" class="btn-ctrl" onclick="toggleEraser()">ERASER_MODE</button>
             </aside>
             <div id="canvas-container">
                 <svg id="wire-layer" style="position:absolute; width:100%; height:100%; pointer-events:none;">
                     <path id="ghost-wire" d="" stroke="rgba(0,255,65,0.4)" stroke-width="3" fill="none" stroke-dasharray="5,5" />
+                    <path id="eraser-path" d="" stroke="rgba(255,49,49,0.5)" stroke-width="20" fill="none" stroke-linecap="round" />
                 </svg>
             </div>
         </main>
@@ -186,13 +152,9 @@
         const noteArea = document.getElementById('note-area'), canvas = document.getElementById('canvas-container');
         let currentID = "", currentMode = "normal", activeLogID = null;
         let isDrawing = false, startX, startY, draggedElement = null, undoStack = [], redoStack = [], promptMode = "NODE_NAME", customName = "", activeDragWires = [];
+        let eraserActive = false, isErasing = false;
 
         function boot() { setTimeout(() => { document.getElementById('boot-screen').style.display = 'none'; document.getElementById('dashboard').style.display = 'flex'; checkStorageStatus(); }, 1200); }
-
-        function execCmd(cmd) { if(!activeLogID) return; document.execCommand(cmd, false, null); updateBtnStates(); noteArea.focus(); }
-        function updateBtnStates() { document.getElementById('bold-toggle').classList.toggle('active', document.queryCommandState('bold')); document.getElementById('under-toggle').classList.toggle('active', document.queryCommandState('underline')); document.getElementById('bullet-toggle').classList.toggle('active', document.queryCommandState('insertUnorderedList')); }
-        function saveNote() { if(activeLogID) localStorage.setItem(`NOTE_${activeLogID}`, noteArea.innerHTML); }
-        function purgeNode() { if(!activeLogID || !confirm("PURGE ALL DATA FOR THIS NODE?")) return; noteArea.innerHTML = ""; saveNote(); checkStorageStatus(); }
 
         function checkStorageStatus() {
             grid.innerHTML = ""; let projects = [];
@@ -209,17 +171,9 @@
             updateManifest(projects);
         }
 
-        function loadNote(id, label) {
-            activeLogID = id; document.getElementById('editor-ui').classList.add('unlocked');
-            noteArea.contentEditable = "true"; 
-            noteArea.innerHTML = localStorage.getItem(`NOTE_${id}`) || "READY_FOR_INPUT...";
-            const saved = localStorage.getItem(id) ? JSON.parse(localStorage.getItem(id)) : {components:[]};
-            document.getElementById('circuit-summary').innerHTML = `[METADATA]: ${id}<br>[NAME]: ${label}<br>[UNITS]: ${saved.components.length} <button class="purge-btn" onclick="purgeNode()">DATA_PURGE</button>`;
-            document.querySelectorAll('.log-item-btn').forEach(b => b.classList.remove('active')); event.currentTarget.classList.add('active');
-        }
-
         function triggerCustom() { promptMode = "COMP_NAME"; showTerminal("NODE_IDENTITY:"); }
         function showTerminal(t) { document.getElementById('modal-title').innerText = t; field.value = ""; overlay.style.display = 'flex'; field.focus(); }
+        
         field.onkeypress = (e) => {
             if (e.key === 'Enter' && field.value) {
                 const val = field.value.toUpperCase();
@@ -233,109 +187,123 @@
             const div = document.createElement('div'); div.className = 'component'; div.dataset.pins = pins; div.style.left = x; div.style.top = y;
             const h = Math.max(60, (pins/2)*40); div.style.height = `${h}px`; div.innerHTML = `<span>${name}</span>`;
 
-            const delBtn = document.createElement('div');
-            delBtn.innerHTML = '×';
-            Object.assign(delBtn.style, {
-                position: 'absolute', top: '-10px', right: '-10px', background: 'var(--terminal-red)', color: '#000',
-                width: '20px', height: '20px', borderRadius: '50%', fontSize: '14px', lineHeight: '18px',
-                textAlign: 'center', cursor: 'pointer', zIndex: '20', fontWeight: 'bold', display: 'none',
-                border: '2px solid var(--terminal-red)'
-            });
-            delBtn.onclick = (e) => {
-                e.stopPropagation();
-                const compX = parseInt(div.style.left), compY = parseInt(div.style.top), cw = div.offsetWidth || 140, ch = div.offsetHeight || h, pad = 15;
-                document.querySelectorAll('.active-wire').forEach(w => {
-                    const nums = w.getAttribute('d').match(/[-\d.]+/g).map(Number);
-                    if(nums && nums.length >= 6) {
-                        const sx = nums[0], sy = nums[1], ex = nums[4], ey = nums[5];
-                        if ((sx >= compX - pad && sx <= compX + cw + pad && sy >= compY - pad && sy <= compY + ch + pad) ||
-                            (ex >= compX - pad && ex <= compX + cw + pad && ey >= compY - pad && ey <= compY + ch + pad)) {
-                            w.remove();
-                        }
-                    }
-                });
-                div.remove();
-                saveHistory();
-            };
-            div.onmouseenter = () => delBtn.style.display = 'block';
-            div.onmouseleave = () => delBtn.style.display = 'none';
-            div.appendChild(delBtn);
-
             for(let i=0; i<pins; i++) {
                 const p = document.createElement('div'); p.className = 'pin';
                 const isLeft = i < pins/2; p.style[isLeft ? 'left' : 'right'] = '-7px';
                 const spacing = h / (pins/2 + 1); p.style.top = `${((i % (pins/2)) + 1) * spacing}px`;
-                p.onmousedown = (e) => { e.stopPropagation(); isDrawing = true; const r = p.getBoundingClientRect(), cr = canvas.getBoundingClientRect(); startX = Math.round((r.left + 6 - cr.left)/25)*25; startY = Math.round((r.top + 6 - cr.top)/25)*25; };
+                p.onmousedown = (e) => { 
+                    if(eraserActive) return;
+                    e.stopPropagation(); isDrawing = true; 
+                    const r = p.getBoundingClientRect(), cr = canvas.getBoundingClientRect(); 
+                    startX = Math.round((r.left + 6 - cr.left)/25)*25; 
+                    startY = Math.round((r.top + 6 - cr.top)/25)*25; 
+                };
                 div.appendChild(p);
             }
 
             div.onmousedown = (e) => {
-                if(!e.target.classList.contains('pin') && e.target !== delBtn) {
-                    draggedElement = div;
-                    activeDragWires = [];
-                    const compX = parseInt(div.style.left), compY = parseInt(div.style.top), cw = div.offsetWidth || 140, ch = div.offsetHeight || h, pad = 15;
-                    
-                    document.querySelectorAll('.active-wire').forEach(w => {
-                        const nums = w.getAttribute('d').match(/[-\d.]+/g).map(Number);
-                        if(nums && nums.length >= 6) {
-                            const sx = nums[0], sy = nums[1], ex = nums[4], ey = nums[5];
-                            const startInside = (sx >= compX - pad && sx <= compX + cw + pad && sy >= compY - pad && sy <= compY + ch + pad);
-                            const endInside = (ex >= compX - pad && ex <= compX + cw + pad && ey >= compY - pad && ey <= compY + ch + pad);
-                            if(startInside || endInside) {
-                                activeDragWires.push({ path: w, startInside, endInside, sx, sy, ex, ey, startOx: sx - compX, startOy: sy - compY, endOx: ex - compX, endOy: ey - compY });
-                            }
-                        }
-                    });
-                }
+                if(eraserActive || e.target.classList.contains('pin')) return;
+                draggedElement = div; activeDragWires = [];
+                const compX = parseInt(div.style.left), compY = parseInt(div.style.top), cw = 140, ch = h, pad = 15;
+                document.querySelectorAll('.active-wire').forEach(w => {
+                    const pts = w.getAttribute('d').match(/[-\d.]+/g).map(Number);
+                    const startIn = (pts[0] >= compX-pad && pts[0] <= compX+cw+pad && pts[1] >= compY-pad && pts[1] <= compY+ch+pad);
+                    const endIn = (pts[4] >= compX-pad && pts[4] <= compX+cw+pad && pts[5] >= compY-pad && pts[5] <= compY+ch+pad);
+                    if(startIn || endIn) activeDragWires.push({ path: w, startIn, endIn, pts, sOx: pts[0]-compX, sOy: pts[1]-compY, eOx: pts[4]-compX, eOy: pts[5]-compY });
+                });
             };
-
             canvas.appendChild(div); if(pushHistory) saveHistory();
         }
 
-        canvas.onmousedown = (e) => { if(e.target === canvas) { const cr = canvas.getBoundingClientRect(); isDrawing = true; startX = Math.round((e.clientX - cr.left)/25)*25; startY = Math.round((e.clientY - cr.top)/25)*25; } };
-        
-        document.onmousemove = (e) => {
-            const cr = canvas.getBoundingClientRect(); const x = Math.round((e.clientX - cr.left)/25)*25, y = Math.round((e.clientY - cr.top)/25)*25;
-            if(draggedElement) { 
-                const newX = x - 70;
-                const newY = y - 30;
-                draggedElement.style.left = `${newX}px`; 
-                draggedElement.style.top = `${newY}px`; 
+        canvas.onmousedown = (e) => { 
+            if(e.target === canvas) { 
+                const cr = canvas.getBoundingClientRect(); 
+                startX = Math.round((e.clientX - cr.left)/25)*25; startY = Math.round((e.clientY - cr.top)/25)*25; 
+                if(eraserActive) isErasing = true; else isDrawing = true; 
+            } 
+        };
 
-                if (activeDragWires) {
-                    activeDragWires.forEach(dw => {
-                        if(dw.startInside) { dw.sx = newX + dw.startOx; dw.sy = newY + dw.startOy; }
-                        if(dw.endInside) { dw.ex = newX + dw.endOx; dw.ey = newY + dw.endOy; }
-                        dw.path.setAttribute('d', `M ${dw.sx} ${dw.sy} L ${dw.ex} ${dw.sy} L ${dw.ex} ${dw.ey}`);
-                    });
-                }
+        document.onmousemove = (e) => {
+            const cr = canvas.getBoundingClientRect(); 
+            const x = Math.round((e.clientX - cr.left)/25)*25, y = Math.round((e.clientY - cr.top)/25)*25;
+            if(isErasing) {
+                document.getElementById('eraser-path').setAttribute('d', `M ${startX} ${startY} L ${x} ${y}`);
+                traceErase(startX, startY, x, y);
+            } else if(draggedElement) {
+                const nx = x - 70, ny = y - 30;
+                draggedElement.style.left = `${nx}px`; draggedElement.style.top = `${ny}px`;
+                activeDragWires.forEach(dw => {
+                    if(dw.startIn) { dw.pts[0] = nx + dw.sOx; dw.pts[1] = ny + dw.sOy; }
+                    if(dw.endIn) { dw.pts[4] = nx + dw.eOx; dw.pts[5] = ny + dw.eOy; }
+                    dw.pts[2] = dw.pts[4]; dw.pts[3] = dw.pts[1];
+                    dw.path.setAttribute('d', `M ${dw.pts[0]} ${dw.pts[1]} L ${dw.pts[2]} ${dw.pts[3]} L ${dw.pts[4]} ${dw.pts[5]}`);
+                });
+            } else if(isDrawing) {
+                document.getElementById('ghost-wire').setAttribute('d', `M ${startX} ${startY} L ${x} ${startY} L ${x} ${y}`);
             }
-            if(isDrawing) document.getElementById('ghost-wire').setAttribute('d', `M ${startX} ${startY} L ${x} ${startY} L ${x} ${y}`);
         };
 
         document.onmouseup = () => {
-            if(isDrawing) {
-                const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
-                p.setAttribute('d', document.getElementById('ghost-wire').getAttribute('d')); p.setAttribute('stroke', '#00ff41'); p.setAttribute('stroke-width', '3'); p.setAttribute('fill', 'none'); p.classList.add('active-wire');
-                document.getElementById('wire-layer').appendChild(p); isDrawing = false; document.getElementById('ghost-wire').setAttribute('d', ''); saveHistory();
-            }
-            draggedElement = null;
-            activeDragWires = [];
+            if(isDrawing) { createWire(document.getElementById('ghost-wire').getAttribute('d')); document.getElementById('ghost-wire').setAttribute('d', ''); saveHistory(); }
+            isDrawing = false; isErasing = false; draggedElement = null; document.getElementById('eraser-path').setAttribute('d', '');
         };
+
+        function createWire(d) {
+            if(!d || d === "") return;
+            const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            p.setAttribute('d', d); p.setAttribute('stroke', '#00ff41'); p.setAttribute('stroke-width', '3'); p.setAttribute('fill', 'none'); p.classList.add('active-wire');
+            document.getElementById('wire-layer').appendChild(p);
+        }
+
+        function toggleEraser() {
+            eraserActive = !eraserActive;
+            const btn = document.getElementById('eraser-btn');
+            btn.classList.toggle('active-mode', eraserActive);
+            btn.innerText = eraserActive ? "ERASING..." : "ERASER_MODE";
+        }
+
+        function traceErase(x1, y1, x2, y2) {
+            document.querySelectorAll('.active-wire').forEach(w => {
+                const d = w.getAttribute('d');
+                const pts = d.match(/[-\d.]+/g).map(Number);
+                if (lineIntersect(x1,y1,x2,y2, pts[0],pts[1],pts[2],pts[3])) {
+                    w.remove(); createWire(`M ${pts[2]} ${pts[3]} L ${pts[2]} ${pts[3]} L ${pts[4]} ${pts[5]}`);
+                } else if (lineIntersect(x1,y1,x2,y2, pts[2],pts[3],pts[4],pts[5])) {
+                    w.remove(); createWire(`M ${pts[0]} ${pts[1]} L ${pts[2]} ${pts[3]} L ${pts[2]} ${pts[3]}`);
+                }
+            });
+        }
+
+        function lineIntersect(x1,y1,x2,y2,x3,y3,x4,y4) {
+            let det = (x2-x1)*(y4-y3)-(y2-y1)*(x4-x3); if (det === 0) return false;
+            let l = ((y4-y3)*(x4-x1)+(x3-x4)*(y4-y1))/det, g = ((y1-y2)*(x4-x1)+(x2-x1)*(y4-y1))/det;
+            return (l > 0 && l < 1) && (g > 0 && g < 1);
+        }
+
+        function handleCardClick(id) { 
+            if (currentMode === "normal") launchBuilder(id); 
+            else if (currentMode === "star") { 
+                const isStar = localStorage.getItem(`STAR_${id}`) === "true";
+                localStorage.setItem(`STAR_${id}`, !isStar); checkStorageStatus(); 
+            } else if (currentMode === "delete") { 
+                localStorage.removeItem(`LABEL_${id}`); localStorage.removeItem(id); checkStorageStatus(); 
+            } 
+        }
 
         function saveHistory() { undoStack.push(JSON.stringify(getCurrentState())); redoStack = []; }
         function undo() { if (undoStack.length > 1) { redoStack.push(undoStack.pop()); clearCanvas(); renderState(JSON.parse(undoStack[undoStack.length-1])); } }
         function redo() { if (redoStack.length > 0) { const s = redoStack.pop(); undoStack.push(s); clearCanvas(); renderState(JSON.parse(s)); } }
-        function updateManifest(projects) { logList.innerHTML = ""; projects.forEach(p => { const btn = document.createElement('button'); btn.className = 'log-item-btn'; btn.innerHTML = `<div style="font-size:0.6rem; color:#444">${p.id}</div>${p.label}`; btn.onclick = (e) => loadNote(p.id, p.label); logList.appendChild(btn); }); }
-        function handleCardClick(id) { if (currentMode === "normal") launchBuilder(id); else if (currentMode === "star") { localStorage.setItem(`STAR_${id}`, localStorage.getItem(`STAR_${id}`) !== "true"); checkStorageStatus(); } else if (currentMode === "delete") { localStorage.removeItem(`LABEL_${id}`); localStorage.removeItem(id); checkStorageStatus(); } }
-        function toggleMode(m) { currentMode = (currentMode === m) ? "normal" : m; document.body.className = `mode-${currentMode}`; checkStorageStatus(); }
-        function launchBuilder(id) { currentID = id; document.getElementById('dashboard').style.display = 'none'; document.getElementById('builder-view').style.display = 'flex'; document.getElementById('active-project-title').innerText = localStorage.getItem(`LABEL_${id}`); clearCanvas(); const saved = localStorage.getItem(id); if (saved) renderState(JSON.parse(saved)); saveHistory(); }
-        function exitToHub() { document.getElementById('builder-view').style.display = 'none'; document.getElementById('dashboard').style.display = 'flex'; checkStorageStatus(); }
         function saveToDisk() { localStorage.setItem(currentID, JSON.stringify(getCurrentState())); alert("SYNC_SUCCESS"); }
         function getCurrentState() { return { components: Array.from(document.querySelectorAll('.component')).map(c => ({ name: c.querySelector('span').innerText, pins: parseInt(c.dataset.pins), left: c.style.left, top: c.style.top })), wires: Array.from(document.querySelectorAll('.active-wire')).map(w => w.getAttribute('d')) }; }
-        function renderState(s) { s.components.forEach(c => addComponent(c.name, c.pins, c.left, c.top, false)); s.wires.forEach(d => { const p = document.createElementNS("http://www.w3.org/2000/svg", "path"); p.setAttribute('d', d); p.setAttribute('stroke', '#00ff41'); p.setAttribute('stroke-width', '3'); p.setAttribute('fill', 'none'); p.classList.add('active-wire'); document.getElementById('wire-layer').appendChild(p); }); }
+        function renderState(s) { s.components.forEach(c => addComponent(c.name, c.pins, c.left, c.top, false)); s.wires.forEach(d => createWire(d)); }
         function clearCanvas() { document.querySelectorAll('.component, .active-wire').forEach(el => el.remove()); }
+        function launchBuilder(id) { currentID = id; document.getElementById('dashboard').style.display = 'none'; document.getElementById('builder-view').style.display = 'flex'; document.getElementById('active-project-title').innerText = localStorage.getItem(`LABEL_${id}`); clearCanvas(); const saved = localStorage.getItem(id); if (saved) renderState(JSON.parse(saved)); saveHistory(); }
+        function exitToHub() { document.getElementById('builder-view').style.display = 'none'; document.getElementById('dashboard').style.display = 'flex'; checkStorageStatus(); }
+        function toggleMode(m) { currentMode = (currentMode === m) ? "normal" : m; document.body.className = `mode-${currentMode}`; }
+        function updateManifest(projects) { logList.innerHTML = ""; projects.forEach(p => { const btn = document.createElement('button'); btn.className = 'log-item-btn'; btn.innerHTML = `<div style="font-size:0.6rem; color:#444">${p.id}</div>${p.label}`; btn.onclick = () => loadNote(p.id, p.label); logList.appendChild(btn); }); }
+        function loadNote(id, label) { activeLogID = id; document.getElementById('editor-ui').classList.add('unlocked'); noteArea.contentEditable = "true"; noteArea.innerHTML = localStorage.getItem(`NOTE_${id}`) || "READY_FOR_INPUT..."; document.getElementById('circuit-summary').innerText = `[METADATA]: ${label}`; }
         function showSection(id, el) { document.querySelectorAll('.section').forEach(s => s.classList.remove('active')); document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active')); document.getElementById(id).classList.add('active'); el.classList.add('active'); }
+        function saveNote() { if(activeLogID) localStorage.setItem(`NOTE_${activeLogID}`, noteArea.innerHTML); }
 
         window.onload = boot;
     </script>
