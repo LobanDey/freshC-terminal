@@ -72,7 +72,7 @@
 
         /* MANIFEST & WYSIWYG */
         .log-layout { display: flex; gap: 40px; height: calc(100vh - 200px); width: 100%; max-width: 1400px; margin: 0 auto; }
-        #log-list { flex: 0 0 350px; overflow-y: auto; border: 2px solid #222; padding: 10px; }
+        .log-list { flex: 0 0 350px; overflow-y: auto; border: 2px solid #222; padding: 10px; }
         .log-item-btn { width: 100%; background: #111; border: 1px solid #333; color: #00661a; padding: 15px; text-align: left; cursor: pointer; margin-bottom: 10px; }
         .log-item-btn.active { border-color: var(--terminal-green); color: var(--terminal-green); background: rgba(0,255,65,0.05); }
 
@@ -135,7 +135,7 @@
 
         <div id="manifest" class="section">
             <div class="log-layout">
-                <div id="log-list"></div>
+                <div id="log-list" class="log-list"></div>
                 <div class="log-right" id="editor-ui">
                     <div class="summary-box" id="circuit-summary">
                         [METADATA]: NO_SELECTION
@@ -185,7 +185,7 @@
         const overlay = document.getElementById('terminal-overlay'), field = document.getElementById('modal-field');
         const noteArea = document.getElementById('note-area'), canvas = document.getElementById('canvas-container');
         let currentID = "", currentMode = "normal", activeLogID = null;
-        let isDrawing = false, startX, startY, draggedElement = null, undoStack = [], redoStack = [], promptMode = "NODE_NAME", customName = "";
+        let isDrawing = false, startX, startY, draggedElement = null, undoStack = [], redoStack = [], promptMode = "NODE_NAME", customName = "", activeDragWires = [];
 
         function boot() { setTimeout(() => { document.getElementById('boot-screen').style.display = 'none'; document.getElementById('dashboard').style.display = 'flex'; checkStorageStatus(); }, 1200); }
 
@@ -232,6 +232,35 @@
         function addComponent(name, pins, x='100px', y='100px', pushHistory=true) {
             const div = document.createElement('div'); div.className = 'component'; div.dataset.pins = pins; div.style.left = x; div.style.top = y;
             const h = Math.max(60, (pins/2)*40); div.style.height = `${h}px`; div.innerHTML = `<span>${name}</span>`;
+
+            const delBtn = document.createElement('div');
+            delBtn.innerHTML = '×';
+            Object.assign(delBtn.style, {
+                position: 'absolute', top: '-10px', right: '-10px', background: 'var(--terminal-red)', color: '#000',
+                width: '20px', height: '20px', borderRadius: '50%', fontSize: '14px', lineHeight: '18px',
+                textAlign: 'center', cursor: 'pointer', zIndex: '20', fontWeight: 'bold', display: 'none',
+                border: '2px solid var(--terminal-red)'
+            });
+            delBtn.onclick = (e) => {
+                e.stopPropagation();
+                const compX = parseInt(div.style.left), compY = parseInt(div.style.top), cw = div.offsetWidth || 140, ch = div.offsetHeight || h, pad = 15;
+                document.querySelectorAll('.active-wire').forEach(w => {
+                    const nums = w.getAttribute('d').match(/[-\d.]+/g).map(Number);
+                    if(nums && nums.length >= 6) {
+                        const sx = nums[0], sy = nums[1], ex = nums[4], ey = nums[5];
+                        if ((sx >= compX - pad && sx <= compX + cw + pad && sy >= compY - pad && sy <= compY + ch + pad) ||
+                            (ex >= compX - pad && ex <= compX + cw + pad && ey >= compY - pad && ey <= compY + ch + pad)) {
+                            w.remove();
+                        }
+                    }
+                });
+                div.remove();
+                saveHistory();
+            };
+            div.onmouseenter = () => delBtn.style.display = 'block';
+            div.onmouseleave = () => delBtn.style.display = 'none';
+            div.appendChild(delBtn);
+
             for(let i=0; i<pins; i++) {
                 const p = document.createElement('div'); p.className = 'pin';
                 const isLeft = i < pins/2; p.style[isLeft ? 'left' : 'right'] = '-7px';
@@ -239,16 +268,51 @@
                 p.onmousedown = (e) => { e.stopPropagation(); isDrawing = true; const r = p.getBoundingClientRect(), cr = canvas.getBoundingClientRect(); startX = Math.round((r.left + 6 - cr.left)/25)*25; startY = Math.round((r.top + 6 - cr.top)/25)*25; };
                 div.appendChild(p);
             }
-            div.onmousedown = (e) => { if(!e.target.classList.contains('pin')) draggedElement = div; };
+
+            div.onmousedown = (e) => {
+                if(!e.target.classList.contains('pin') && e.target !== delBtn) {
+                    draggedElement = div;
+                    activeDragWires = [];
+                    const compX = parseInt(div.style.left), compY = parseInt(div.style.top), cw = div.offsetWidth || 140, ch = div.offsetHeight || h, pad = 15;
+                    
+                    document.querySelectorAll('.active-wire').forEach(w => {
+                        const nums = w.getAttribute('d').match(/[-\d.]+/g).map(Number);
+                        if(nums && nums.length >= 6) {
+                            const sx = nums[0], sy = nums[1], ex = nums[4], ey = nums[5];
+                            const startInside = (sx >= compX - pad && sx <= compX + cw + pad && sy >= compY - pad && sy <= compY + ch + pad);
+                            const endInside = (ex >= compX - pad && ex <= compX + cw + pad && ey >= compY - pad && ey <= compY + ch + pad);
+                            if(startInside || endInside) {
+                                activeDragWires.push({ path: w, startInside, endInside, sx, sy, ex, ey, startOx: sx - compX, startOy: sy - compY, endOx: ex - compX, endOy: ey - compY });
+                            }
+                        }
+                    });
+                }
+            };
+
             canvas.appendChild(div); if(pushHistory) saveHistory();
         }
 
         canvas.onmousedown = (e) => { if(e.target === canvas) { const cr = canvas.getBoundingClientRect(); isDrawing = true; startX = Math.round((e.clientX - cr.left)/25)*25; startY = Math.round((e.clientY - cr.top)/25)*25; } };
+        
         document.onmousemove = (e) => {
             const cr = canvas.getBoundingClientRect(); const x = Math.round((e.clientX - cr.left)/25)*25, y = Math.round((e.clientY - cr.top)/25)*25;
-            if(draggedElement) { draggedElement.style.left = `${x-70}px`; draggedElement.style.top = `${y-30}px`; }
+            if(draggedElement) { 
+                const newX = x - 70;
+                const newY = y - 30;
+                draggedElement.style.left = `${newX}px`; 
+                draggedElement.style.top = `${newY}px`; 
+
+                if (activeDragWires) {
+                    activeDragWires.forEach(dw => {
+                        if(dw.startInside) { dw.sx = newX + dw.startOx; dw.sy = newY + dw.startOy; }
+                        if(dw.endInside) { dw.ex = newX + dw.endOx; dw.ey = newY + dw.endOy; }
+                        dw.path.setAttribute('d', `M ${dw.sx} ${dw.sy} L ${dw.ex} ${dw.sy} L ${dw.ex} ${dw.ey}`);
+                    });
+                }
+            }
             if(isDrawing) document.getElementById('ghost-wire').setAttribute('d', `M ${startX} ${startY} L ${x} ${startY} L ${x} ${y}`);
         };
+
         document.onmouseup = () => {
             if(isDrawing) {
                 const p = document.createElementNS("http://www.w3.org/2000/svg", "path");
@@ -256,6 +320,7 @@
                 document.getElementById('wire-layer').appendChild(p); isDrawing = false; document.getElementById('ghost-wire').setAttribute('d', ''); saveHistory();
             }
             draggedElement = null;
+            activeDragWires = [];
         };
 
         function saveHistory() { undoStack.push(JSON.stringify(getCurrentState())); redoStack = []; }
