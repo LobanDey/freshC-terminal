@@ -515,7 +515,7 @@
             document.body.classList.toggle('ai-active');
         }
 
-        function sendAIMessage() {
+        async function sendAIMessage() {
             const input = document.getElementById('ai-query');
             const query = input.value.trim();
             if(!query) return;
@@ -523,9 +523,32 @@
             appendToChat('user', query);
             input.value = '';
 
-            setTimeout(() => {
-                generateMockAIResponse(query);
-            }, 600);
+            // Loading state
+            const history = document.getElementById('ai-chat-history');
+            const loadingMsg = document.createElement('div');
+            loadingMsg.className = 'ai-msg ai';
+            loadingMsg.innerText = "THINKING...";
+            history.appendChild(loadingMsg);
+            history.scrollTop = history.scrollHeight;
+
+            const code = document.body.classList.contains('architect-active') ?
+                document.getElementById('architect-editor').value :
+                document.getElementById('editor').value;
+
+            try {
+                const response = await fetch('http://localhost:8000/api/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ query, code })
+                });
+                const data = await response.json();
+                loadingMsg.innerText = data.response;
+            } catch (err) {
+                loadingMsg.innerText = "ERROR: NEURAL_LINK_FAILED. Ensure backend server is running.";
+                loadingMsg.style.borderColor = "var(--danger-red)";
+                loadingMsg.style.color = "var(--danger-red)";
+            }
+            history.scrollTop = history.scrollHeight;
         }
 
         function appendToChat(sender, text) {
@@ -535,28 +558,6 @@
             msg.innerText = text;
             history.appendChild(msg);
             history.scrollTop = history.scrollHeight;
-        }
-
-        function generateMockAIResponse(query) {
-            let response = "I am processing your request. ";
-            const code = document.body.classList.contains('architect-active') ?
-                document.getElementById('architect-editor').value :
-                document.getElementById('editor').value;
-
-            const lineCount = code.split('\n').length;
-            const charCount = code.length;
-
-            if(query.toLowerCase().includes('analyze')) {
-                response = `ANALYSIS_COMPLETE: Current file contains ${lineCount} lines and ${charCount} characters. The architectural integrity appears stable.`;
-            } else if(query.toLowerCase().includes('help')) {
-                response = "I can help you analyze code, optimize layouts, or suggest architectural improvements. Try asking me to 'analyze' your code.";
-            } else if(query.toLowerCase().includes('optimize')) {
-                response = "OPTIMIZATION_PROTOCOL_INITIATED: Suggesting minification of CSS variables and consolidation of redundant flex containers.";
-            } else {
-                response = `NEURAL_RESPONSE: Query "${query}" received. No critical errors detected in current node buffer.`;
-            }
-
-            appendToChat('ai', response);
         }
     </script>
 </body>
