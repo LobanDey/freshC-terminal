@@ -195,7 +195,6 @@
     </div>
 
     <input type="file" id="import-file" accept=".json" style="display:none;" onchange="handleImport(event)">
-
     <div id="ai-panel">
         <div class="ai-header">
             <div style="color:var(--highlight); font-size:0.7rem; letter-spacing:2px; font-weight:bold;">SYNTH_AI // NEURAL_LINK</div>
@@ -209,6 +208,7 @@
             <button class="btn-system" onclick="sendAIMessage()">SEND</button>
         </div>
     </div>
+
 
     <script>
         const BOILERPLATE = `<!DOCTYPE html>\n<html>\n<head>\n<style>\n  body { margin: 0; background: #050505; height: 100vh; overflow: hidden; font-family: 'Consolas', monospace; }\n  #canvas { position: relative; width: 100%; height: 100%; background-image: radial-gradient(#222 1px, transparent 1px); background-size: 30px 30px; }\n  .v-box { position: absolute; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); border: 1px solid rgba(255,255,255,0.1); text-align: center; padding: 10px; z-index: 10; }\n</style>\n</head>\n<body>\n  <div id="canvas">\n    <div class="v-box" id="UNIT_1" style="left: 50%; top: 50%; width: 220px; height: 120px; background: hsl(150, 70%, 45%); color: hsla(0, 0%, 100%, 1); font-weight: 700;">UNIT_1</div>\n  </div>\n</body>\n</html>`;
