@@ -71,6 +71,23 @@
 
         #system-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 10000; display: none; align-items: center; justify-content: center; }
         .modal-box { background: #0a0a0a; border: 1px solid var(--highlight); padding: 30px; width: 400px; text-align: center; }
+
+        /* --- SYNTH_AI PANEL --- */
+        #ai-panel {
+            position: fixed; right: 0; top: 0; width: 350px; height: 100%;
+            background: #050505; border-left: 1px solid var(--highlight);
+            z-index: 500; transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.85, 0, 0.15, 1);
+            display: flex; flex-direction: column; box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+        }
+        body.ai-active #ai-panel { transform: translateX(0); }
+        .ai-header { padding: 20px; border-bottom: 1px solid #222; display: flex; justify-content: space-between; align-items: center; }
+        #ai-chat-history { flex-grow: 1; overflow-y: auto; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .ai-msg { padding: 10px 15px; font-size: 0.75rem; max-width: 85%; line-height: 1.4; }
+        .ai-msg.user { align-self: flex-end; background: #111; border: 1px solid #333; color: var(--text-light); }
+        .ai-msg.ai { align-self: flex-start; background: rgba(0,255,136,0.05); border: 1px solid var(--highlight); color: var(--highlight); }
+        .ai-input-container { padding: 20px; border-top: 1px solid #222; display: flex; gap: 10px; }
+        #ai-query { flex-grow: 1; background: #000; border: 1px solid #333; color: var(--highlight); padding: 10px; font-family: var(--font-mono); font-size: 0.75rem; outline: none; }
+        #ai-query:focus { border-color: var(--highlight); }
     </style>
 </head>
 <body>
@@ -95,6 +112,7 @@
             <div style="display: flex; gap: 10px;">
                 <button class="btn-system" onclick="closeIDE()"><< HUB</button>
                 <button class="btn-system" style="border-color:var(--star-gold); color:var(--star-gold);" onclick="openArchitect()">>> VISUAL_ARCHITECT</button>
+                <button class="btn-system" onclick="toggleAI()">SYNTH_AI</button>
             </div>
         </div>
         <div class="workspace-layout">
@@ -130,6 +148,7 @@
                 <button class="btn-system" id="redo-btn" onclick="redoArchitect()" title="Redo">⟳</button>
                 <button class="btn-system" onclick="closeArchitect()"><< BACK_TO_CODE</button>
                 <button class="btn-system" style="background:var(--highlight); color:#000;" onclick="addNewBox()">+ INJECT_UNIT</button>
+                <button class="btn-system" onclick="toggleAI()" style="border-color:var(--star-gold); color:var(--star-gold);">SYNTH_AI</button>
             </div>
         </header>
         <div class="ic-layout">
@@ -176,6 +195,20 @@
     </div>
 
     <input type="file" id="import-file" accept=".json" style="display:none;" onchange="handleImport(event)">
+
+    <div id="ai-panel">
+        <div class="ai-header">
+            <div style="color:var(--highlight); font-size:0.7rem; letter-spacing:2px; font-weight:bold;">SYNTH_AI // NEURAL_LINK</div>
+            <button class="icon-btn" onclick="toggleAI()" style="color:#555;">×</button>
+        </div>
+        <div id="ai-chat-history">
+            <div class="ai-msg ai">SYSTEM READY. Standing by for architectural queries or code optimization requests.</div>
+        </div>
+        <div class="ai-input-container">
+            <input type="text" id="ai-query" placeholder="Type command..." autocomplete="off" onkeydown="if(event.key==='Enter') sendAIMessage()">
+            <button class="btn-system" onclick="sendAIMessage()">SEND</button>
+        </div>
+    </div>
 
     <script>
         const BOILERPLATE = `<!DOCTYPE html>\n<html>\n<head>\n<style>\n  body { margin: 0; background: #050505; height: 100vh; overflow: hidden; font-family: 'Consolas', monospace; }\n  #canvas { position: relative; width: 100%; height: 100%; background-image: radial-gradient(#222 1px, transparent 1px); background-size: 30px 30px; }\n  .v-box { position: absolute; display: flex; align-items: center; justify-content: center; transform: translate(-50%, -50%); border: 1px solid rgba(255,255,255,0.1); text-align: center; padding: 10px; z-index: 10; }\n</style>\n</head>\n<body>\n  <div id="canvas">\n    <div class="v-box" id="UNIT_1" style="left: 50%; top: 50%; width: 220px; height: 120px; background: hsl(150, 70%, 45%); color: hsla(0, 0%, 100%, 1); font-weight: 700;">UNIT_1</div>\n  </div>\n</body>\n</html>`;
@@ -476,6 +509,55 @@
         }
 
         window.onload = runBoot;
+
+        // --- SYNTH_AI LOGIC ---
+        function toggleAI() {
+            document.body.classList.toggle('ai-active');
+        }
+
+        function sendAIMessage() {
+            const input = document.getElementById('ai-query');
+            const query = input.value.trim();
+            if(!query) return;
+
+            appendToChat('user', query);
+            input.value = '';
+
+            setTimeout(() => {
+                generateMockAIResponse(query);
+            }, 600);
+        }
+
+        function appendToChat(sender, text) {
+            const history = document.getElementById('ai-chat-history');
+            const msg = document.createElement('div');
+            msg.className = `ai-msg ${sender}`;
+            msg.innerText = text;
+            history.appendChild(msg);
+            history.scrollTop = history.scrollHeight;
+        }
+
+        function generateMockAIResponse(query) {
+            let response = "I am processing your request. ";
+            const code = document.body.classList.contains('architect-active') ?
+                document.getElementById('architect-editor').value :
+                document.getElementById('editor').value;
+
+            const lineCount = code.split('\n').length;
+            const charCount = code.length;
+
+            if(query.toLowerCase().includes('analyze')) {
+                response = `ANALYSIS_COMPLETE: Current file contains ${lineCount} lines and ${charCount} characters. The architectural integrity appears stable.`;
+            } else if(query.toLowerCase().includes('help')) {
+                response = "I can help you analyze code, optimize layouts, or suggest architectural improvements. Try asking me to 'analyze' your code.";
+            } else if(query.toLowerCase().includes('optimize')) {
+                response = "OPTIMIZATION_PROTOCOL_INITIATED: Suggesting minification of CSS variables and consolidation of redundant flex containers.";
+            } else {
+                response = `NEURAL_RESPONSE: Query "${query}" received. No critical errors detected in current node buffer.`;
+            }
+
+            appendToChat('ai', response);
+        }
     </script>
 </body>
 </html>
